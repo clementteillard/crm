@@ -510,6 +510,8 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
       <button class="tab" onclick="showTab('t-ccal',this)">📅 Mon agenda</button>
       <button class="tab" onclick="showTab('t-cst',this)">📊 Avancement</button>
       <button class="tab" onclick="showTab('t-cse',this)">⚙️ Notifs</button>
+      <button class="tab" onclick="showTab('t-team',this)">👥 Équipe</button>
+      <button class="tab" onclick="showTab('t-chat',this)">💬 Chat</button>
     </div>
     <div id="t-cc" class="panel active">
       <div class="stats-bar" id="collab-stats-bar"></div>
@@ -543,6 +545,8 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
         <button class="btn btn-ghost" onclick="testBrowserNotif()">🔔 Tester</button>
         <button class="btn btn-ghost" onclick="testSound()">🔊 Son</button>
       </div>
+    <div id="t-team" class="panel"><div id="team-stats-container"></div></div>
+    <div id="t-chat" class="panel"><div id="chat-container"></div></div>
     </div>
   </div>
 </div>
@@ -776,6 +780,10 @@ function showTab(id,btn){
   if(id==='t-ch')renderCharts();
   if(id==='t-bk')renderHistory();
   if(id==='t-du')detectDuplicates();
+  if(id==='t-team')renderTeamStats();
+  if(id==='t-chat')renderChat();
+  if(id==='t-admin-team'){var atc=document.getElementById('admin-team-container');if(atc)atc.id='team-stats-container';renderTeamStats();}
+  if(id==='t-admin-chat'){var acc=document.getElementById('admin-chat-container');if(acc)acc.id='chat-container';renderChat();}
 }
 
 function sortTable(col,el){
@@ -863,7 +871,7 @@ function renderAdminPage(filtered){
       var tr=document.createElement('tr');
       tr.setAttribute('data-idx', String(c.idx));
       tr.onclick=function(){openModal(this.getAttribute('data-idx'));};
-      var telCell=c.tel?'<a href="tel:'+esc(c.tel)+'" onclick="event.stopPropagation()">'+esc(c.tel)+'</a>':'-';
+      var telCell=c.tel?'<a href="javascript:void(0)" onclick="callNumber(\'' + esc(c.tel) + '\',event)" style="color:var(--accent)">'+esc(c.tel)+'</a>':'-';
       tr.innerHTML='<td class="td-nom">'+esc(c.nom)+'</td><td class="td-tel">'+telCell+'</td><td class="td-email">'+esc(c.email)+'</td><td>'+esc(c.cp)+'</td><td style="font-size:11px;color:var(--muted)">'+esc(lst?lst.name:'—')+'</td><td>'+esc(collab?collab.name:'—')+'</td><td><span class="badge '+s.cls+'">'+s.label+'</span></td><td style="font-size:11px">'+(nextRdv?'<span style="color:var(--purple)">\u{1F4C5} '+nextRdv.date+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>';
       tbody.appendChild(tr);
     }
@@ -1580,7 +1588,7 @@ function renderCollabPage(filtered){
       var c=slice[i],s=STATUSES[c.status]||STATUSES.pending,nextRdv=null;
       for(var j=0;j<state.rdvs.length;j++){if(String(state.rdvs[j].contactIdx)===String(c.idx)&&state.rdvs[j].date>=tod){if(!nextRdv||state.rdvs[j].date<nextRdv.date)nextRdv=state.rdvs[j];}}
       var tr=document.createElement('tr');tr.setAttribute('data-idx',String(c.idx));tr.onclick=function(){openModal(this.getAttribute('data-idx'));};
-      var telCell=c.tel?'<a href="tel:'+esc(c.tel)+'" onclick="event.stopPropagation()">'+esc(c.tel)+'</a>':'-';
+      var telCell=c.tel?'<a href="javascript:void(0)" onclick="callNumber(\'' + esc(c.tel) + '\',event)" style="color:var(--accent)">'+esc(c.tel)+'</a>':'-';
       tr.innerHTML='<td class="td-nom">'+esc(c.nom)+'</td><td class="td-tel">'+telCell+'</td><td class="td-email">'+esc(c.email)+'</td><td>'+esc(c.cp)+'</td><td><span class="badge '+s.cls+'">'+s.label+'</span></td><td style="font-size:11px">'+(nextRdv?'<span style="color:var(--purple)">\u{1F4C5} '+nextRdv.date+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>';
       tbody.appendChild(tr);
     }
@@ -1786,6 +1794,182 @@ function renderMonthlyChart(){
 }
 
 
+// ═══ RINGOVER ════════════════════════════════════════════════════
+var USE_RINGOVER = true; // Mettre false pour utiliser le tel standard
+
+function callNumber(tel, event) {
+  if(event) event.stopPropagation();
+  if(!tel) return;
+  if(USE_RINGOVER) {
+    // Ringover click-to-call
+    var clean = tel.replace(/[^0-9+]/g,'');
+    window.open('https://app.ringover.com/call/' + encodeURIComponent(clean), '_blank');
+  } else {
+    window.location.href = 'tel:' + tel;
+  }
+}
+
+// ═══ TEAM STATS ══════════════════════════════════════════════════
+function renderTeamStats() {
+  var container = document.getElementById('team-stats-container');
+  if(!container) return;
+
+  // Global stats bar
+  var total = state.contacts.length;
+  var done = state.contacts.filter(function(c){return c.status==='done';}).length;
+  var validated = state.contacts.filter(function(c){return c.status==='validated';}).length;
+  var inprogress = state.contacts.filter(function(c){return c.status==='inprogress';}).length;
+  var noreply = state.contacts.filter(function(c){return c.status==='noreply';}).length;
+
+  var html = '<div class="stats-bar">'
+    + '<div class="stat-card blue"><div class="stat-val">'+total+'</div><div class="stat-label">Total</div></div>'
+    + '<div class="stat-card green"><div class="stat-val">'+(done+validated)+'</div><div class="stat-label">Trait\u00e9s</div></div>'
+    + '<div class="stat-card" style="--sv-color:#ffd700"><div class="stat-val" style="color:#ffd700">'+validated+'</div><div class="stat-label">Valid\u00e9s</div></div>'
+    + '<div class="stat-card yellow"><div class="stat-val">'+inprogress+'</div><div class="stat-label">En cours</div></div>'
+    + '<div class="stat-card orange"><div class="stat-val">'+noreply+'</div><div class="stat-label">Sans r\u00e9ponse</div></div>'
+    + '</div>';
+
+  // Team table
+  html += '<div class="stit">Progression de l\'équipe</div>';
+  html += '<div class="tw" style="margin-bottom:24px"><table><thead><tr>'
+    + '<th>Collaborateur</th><th>Total</th><th>Trait\u00e9s</th><th>Valid\u00e9s</th><th>En cours</th><th>Sans r\u00e9ponse</th><th>Progression</th>'
+    + '</tr></thead><tbody>';
+
+  for(var i=0;i<state.collabs.length;i++){
+    var col = state.collabs[i];
+    var cc = state.contacts.filter(function(x){return x.collabId===col.id;});
+    var dn = cc.filter(function(x){return x.status==='done';}).length;
+    var vl = cc.filter(function(x){return x.status==='validated';}).length;
+    var ip = cc.filter(function(x){return x.status==='inprogress';}).length;
+    var nr = cc.filter(function(x){return x.status==='noreply';}).length;
+    var pct = cc.length ? Math.round((dn+vl)/cc.length*100) : 0;
+    var isMe = state.currentUser && col.id === state.currentUser.id;
+    html += '<tr' + (isMe?' style="background:rgba(79,142,247,.07)"':'') + '>'
+      + '<td style="font-weight:'+(isMe?700:400)+'">'+esc(col.name)+(isMe?' ←':' ')+'</td>'
+      + '<td>'+cc.length+'</td>'
+      + '<td><span class="badge badge-done">'+dn+'</span></td>'
+      + '<td><span class="badge badge-validated">'+vl+'</span></td>'
+      + '<td><span class="badge badge-inprogress">'+ip+'</span></td>'
+      + '<td><span class="badge badge-noreply">'+nr+'</span></td>'
+      + '<td><div style="display:flex;align-items:center;gap:8px">'
+      + '<div style="flex:1;height:6px;background:var(--border);border-radius:3px">'
+      + '<div style="width:'+pct+'%;height:100%;background:var(--accent);border-radius:3px"></div></div>'
+      + '<span style="font-size:11px;min-width:35px"><b>'+pct+'%</b></span></div></td>'
+      + '</tr>';
+  }
+  html += '</tbody></table></div>';
+
+  // Monthly chart
+  html += '<div class="stit">Contacts trait\u00e9s par mois</div>';
+  html += '<div class="chgrd"><div class="chcrd"><div class="chtit">6 derniers mois</div><canvas id="chart-team-months" height="200"></canvas></div></div>';
+
+  container.innerHTML = html;
+  renderTeamMonthlyChart();
+}
+
+function renderTeamMonthlyChart() {
+  var canvas = document.getElementById('chart-team-months');
+  if(!canvas) return;
+  if(typeof Chart === 'undefined') {
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+    s.onload = renderTeamMonthlyChart;
+    document.head.appendChild(s);
+    return;
+  }
+  if(canvas._chart) canvas._chart.destroy();
+
+  var monthNames = ['Jan','F\u00e9v','Mar','Avr','Mai','Juin','Juil','Ao\u00fb','Sep','Oct','Nov','D\u00e9c'];
+  var now = new Date();
+  var months = {};
+  for(var m=5;m>=0;m--){
+    var d = new Date(now.getFullYear(), now.getMonth()-m, 1);
+    var key = d.getFullYear()+'-'+(d.getMonth()+1);
+    months[key] = {label: monthNames[d.getMonth()]+' '+d.getFullYear(), done:0, validated:0};
+  }
+  for(var i=0;i<state.history.length;i++){
+    var h = state.history[i];
+    if(h.type !== 'status') continue;
+    var d = new Date(h.ts);
+    var key = d.getFullYear()+'-'+(d.getMonth()+1);
+    if(!months[key]) continue;
+    if(h.detail && h.detail.indexOf('Trait\u00e9') > -1) months[key].done++;
+    if(h.detail && h.detail.indexOf('Valid\u00e9') > -1) months[key].validated++;
+  }
+  var labels=[], done=[], validated=[];
+  for(var k in months){labels.push(months[k].label);done.push(months[k].done);validated.push(months[k].validated);}
+
+  canvas._chart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {label:'Trait\u00e9s', data:done, backgroundColor:'#3dd68c'},
+        {label:'Valid\u00e9s admin', data:validated, backgroundColor:'#ffd700'}
+      ]
+    },
+    options: {
+      plugins: {legend:{position:'bottom'}},
+      scales: {x:{stacked:true}, y:{stacked:true, beginAtZero:true}},
+      responsive: true
+    }
+  });
+}
+
+// ═══ CHAT GENERAL ════════════════════════════════════════════════
+function renderChat() {
+  var container = document.getElementById('chat-container');
+  if(!container) return;
+
+  var messages = state.chatMessages || [];
+  var html = '<div class="stit">Chat g\u00e9n\u00e9ral</div>';
+  html += '<div id="chat-messages" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px">';
+
+  if(!messages.length){
+    html += '<div style="color:var(--muted);font-size:13px;text-align:center;margin:auto">Aucun message. Soyez le premier !</div>';
+  } else {
+    for(var i=0;i<messages.length;i++){
+      var m = messages[i];
+      var isMe = state.currentUser && m.who === state.currentUser.name;
+      html += '<div style="display:flex;flex-direction:column;align-items:'+(isMe?'flex-end':'flex-start')+'">'
+        + '<div style="font-size:10px;color:var(--muted);margin-bottom:3px">'+(isMe?'':esc(m.who)+' &middot; ')+fmtTs(m.ts)+(isMe?' &middot; Moi':'')+'</div>'
+        + '<div style="background:'+(isMe?'var(--accent)':'var(--surface2)')+';color:'+(isMe?'#fff':'var(--text)')+';padding:10px 14px;border-radius:'+(isMe?'12px 12px 4px 12px':'12px 12px 12px 4px')+';max-width:70%;font-size:13px">'+esc(m.text)+'</div>'
+        + '</div>';
+    }
+  }
+  html += '</div>';
+  html += '<div style="display:flex;gap:8px">'
+    + '<input type="text" id="chat-input" placeholder="Votre message..." style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:var(--fm);font-size:13px;outline:none" onkeydown="if(event.key===\'Enter\')sendChatMessage()">'
+    + '<button class="btn btn-primary" onclick="sendChatMessage()">Envoyer</button>'
+    + '</div>';
+
+  container.innerHTML = html;
+  // Scroll to bottom
+  setTimeout(function(){
+    var msgs = document.getElementById('chat-messages');
+    if(msgs) msgs.scrollTop = msgs.scrollHeight;
+  }, 100);
+}
+
+function sendChatMessage() {
+  var input = document.getElementById('chat-input');
+  if(!input) return;
+  var text = input.value.trim();
+  if(!text) return;
+  if(!state.chatMessages) state.chatMessages = [];
+  state.chatMessages.push({
+    id: 'msg_'+Date.now(),
+    who: state.currentUser.name,
+    text: text,
+    ts: Date.now()
+  });
+  if(state.chatMessages.length > 200) state.chatMessages = state.chatMessages.slice(-200);
+  input.value = '';
+  save();
+  renderChat();
+}
+
+
 // SYNC FIREBASE REALTIME DATABASE - VERSION FINALE
 var RTDB='https://home-renovation-79c5b-default-rtdb.europe-west1.firebasedatabase.app/datarp';
 var FB_KEY='AIzaSyCax0YjTLYA_HMP_G_kJZKaHCfPpGwrr9s';
@@ -1860,6 +2044,7 @@ async function fbPoll(){
     state.lists=main.lists||[];
     state.rdvs=main.rdvs||[];
     state.history=main.history||[];
+    state.chatMessages=main.chatMessages||[];
     if(main.settings)state.settings=Object.assign({},state.settings,main.settings);
     var nc=main.nc||1;
     var allC=[];
@@ -1889,6 +2074,7 @@ async function fbInit(){
       state.lists=main.lists||[];
       state.rdvs=main.rdvs||[];
       state.history=main.history||[];
+      state.chatMessages=main.chatMessages||[];
       if(main.settings)state.settings=Object.assign({},state.settings,main.settings);
       if(main.theme)document.documentElement.setAttribute('data-theme',main.theme);
       fbLastTs=main.ts||0;
