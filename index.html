@@ -628,6 +628,7 @@ var STATUSES = {
   inprogress: {label:'\u{1F7E1} En cours',          cls:'badge-inprogress', sel:'sel-inprogress'},
   done:       {label:'\u{1F7E2} Trait\xE9',         cls:'badge-done',       sel:'sel-done'},
   noreply:    {label:'\u{1F534} Pas de r\xE9ponse', cls:'badge-noreply',    sel:'sel-noreply'},
+  validated:  {label:'\u2B50 Valid\u00e9 admin',      cls:'badge-validated',  sel:'sel-validated'}
 };
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -1589,21 +1590,29 @@ function renderCollabPage(filtered){
 
 function renderCollabStatsDetail(){
   renderCollabStats();
-  var mine=myContacts();
-  var groups={done:mine.filter(function(c){return c.status==='done';}),inprogress:mine.filter(function(c){return c.status==='inprogress';}),noreply:mine.filter(function(c){return c.status==='noreply';}),pending:mine.filter(function(c){return c.status==='pending';})};
-  var container=document.getElementById('collab-status-detail');container.innerHTML='';
-  for(var k in groups){
-    var arr=groups[k];if(!arr.length)continue;
-    var sec=document.createElement('div');sec.style='margin-bottom:18px';
-    var hd=document.createElement('div');hd.style='font-family:var(--fh);font-size:14px;font-weight:700;margin-bottom:9px';
-    hd.innerHTML=STATUSES[k].label+' <span class="count-badge">'+arr.length+'</span>';
-    var tbl=document.createElement('div');tbl.className='table-wrap';
-    var rows='<table><thead><tr><th>Nom</th><th>T\xE9l\xE9phone</th><th>Email</th><th>Note</th></tr></thead><tbody>';
-    for(var i=0;i<Math.min(arr.length,20);i++){var c=arr[i];rows+='<tr style="cursor:pointer" data-idx="'+esc(c.idx)+'" onclick="openModal(\''+esc(c.idx)+'\')"><td>'+esc(c.nom)+'</td><td>'+esc(c.tel)+'</td><td class="td-email">'+esc(c.email)+'</td><td style="font-size:11px;color:var(--muted)">'+esc(c.note)+'</td></tr>';}
-    if(arr.length>20)rows+='<tr><td colspan="4" style="text-align:center;color:var(--muted);font-size:12px;padding:10px">+'+(arr.length-20)+' autres</td></tr>';
-    rows+='</tbody></table>';
-    tbl.innerHTML=rows;sec.appendChild(hd);sec.appendChild(tbl);container.appendChild(sec);
+  var container=document.getElementById('collab-det');
+  if(!container)return;
+  var teamHtml='<div class="stit">Stats de l\'\u00e9quipe</div>';
+  teamHtml+='<div class="tw"><table><thead><tr><th>Collaborateur</th><th>Total</th><th>Trait\u00e9s</th><th>Valid\u00e9s</th><th>En cours</th><th>%</th></tr></thead><tbody>';
+  for(var i=0;i<state.collabs.length;i++){
+    var col=state.collabs[i];
+    var cc=state.contacts.filter(function(x){return x.collabId===col.id;});
+    var dn=cc.filter(function(x){return x.status==='done';}).length;
+    var vl=cc.filter(function(x){return x.status==='validated';}).length;
+    var ip=cc.filter(function(x){return x.status==='inprogress';}).length;
+    var pct=cc.length?Math.round((dn+vl)/cc.length*100):0;
+    var isMe=col.id===state.currentUser.id;
+    teamHtml+='<tr'+(isMe?' style="background:rgba(79,142,247,.07)"':'')+'>'
+      +'<td style="font-weight:'+(isMe?700:400)+'">'+esc(col.name)+(isMe?' \u2190 moi':'')+'</td>'
+      +'<td>'+cc.length+'</td>'
+      +'<td><span class="badge badge-done">'+dn+'</span></td>'
+      +'<td><span class="badge badge-validated">'+vl+'</span></td>'
+      +'<td><span class="badge badge-inprogress">'+ip+'</span></td>'
+      +'<td><b>'+pct+'%</b></td>'
+      +'</tr>';
   }
+  teamHtml+='</tbody></table></div>';
+  container.innerHTML=teamHtml;
 }
 
 function openModal(idx){
@@ -1645,7 +1654,22 @@ function openModal(idx){
   }
   document.getElementById('modal-note').value=c.note||'';
   renderComments(c);
+  var vw=document.getElementById('validate-btn-wrap');
+  if(vw)vw.style.display=(state.currentUser&&state.currentUser.type==='admin'&&c.status==='done')?'block':'none';
+  var vw=document.getElementById('validate-btn-wrap');
+  if(vw)vw.style.display=(state.currentUser&&state.currentUser.type==='admin'&&c.status==='done')?'block':'none';
   document.getElementById('contact-modal').classList.add('open');
+}
+
+function validateContact(){
+  var c=state.contacts.find(function(x){return String(x.idx)===String(state.currentContact);});
+  if(!c)return;
+  c.status='validated';
+  addHistory('status',c.idx,c.nom,'Contact valid\u00e9 par admin');
+  save();
+  closeModal('contact-modal');
+  toast('\u2B50 Contact valid\u00e9 !','success');
+  renderAdminOverview();renderAdminTable();
 }
 
 function saveContact(){
