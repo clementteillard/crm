@@ -1707,8 +1707,6 @@ function exportXLSX(collabOnly){
   var ws=XLSX.utils.aoa_to_sheet(rows);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Contacts');XLSX.writeFile(wb,'DataRP_contacts.xlsx');
 }
 
-fbInit();
-
 
 // SYNC FIREBASE REALTIME DATABASE - VERSION FINALE
 var RTDB='https://home-renovation-79c5b-default-rtdb.europe-west1.firebasedatabase.app/datarp';
@@ -1843,6 +1841,7 @@ async function fbInit(){
   fbPollTimer=setInterval(fbPoll,5000);
 }
 
+fbInit();
 </script>
 </body>
 </html>
