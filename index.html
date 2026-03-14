@@ -357,7 +357,11 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
       <button class="tab" onclick="showTab('t-ch',this)">📈 Graphiques</button>
       <button class="tab" onclick="showTab('t-bk',this)">💾 Backup</button>
       <button class="tab" onclick="showTab('t-st',this)">⚙️ Notifs</button>
+      <button class="tab" onclick="showTab('t-admin-team',this)">👥 Équipe</button>
+      <button class="tab" onclick="showTab('t-admin-chat',this)">💬 Chat</button>
     </div>
+    <div id="t-admin-team" class="panel"><div id="team-stats-container"></div></div>
+    <div id="t-admin-chat" class="panel"><div id="chat-container"></div></div>
 
     <div id="t-ov" class="panel active">
       <div class="stats-bar" id="admin-stats"></div>
@@ -545,8 +549,8 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
         <button class="btn btn-ghost" onclick="testBrowserNotif()">🔔 Tester</button>
         <button class="btn btn-ghost" onclick="testSound()">🔊 Son</button>
       </div>
-    <div id="t-team" class="panel"><div id="team-stats-container"></div></div>
-    <div id="t-chat" class="panel"><div id="chat-container"></div></div>
+    <div id="t-team" class="panel"><div id="collab-team-container"></div></div>
+    <div id="t-chat" class="panel"><div id="collab-chat-container"></div></div>
     </div>
   </div>
 </div>
@@ -780,10 +784,10 @@ function showTab(id,btn){
   if(id==='t-ch')renderCharts();
   if(id==='t-bk')renderHistory();
   if(id==='t-du')detectDuplicates();
-  if(id==='t-team')renderTeamStats();
-  if(id==='t-chat')renderChat();
-  if(id==='t-admin-team'){var atc=document.getElementById('admin-team-container');if(atc)atc.id='team-stats-container';renderTeamStats();}
-  if(id==='t-admin-chat'){var acc=document.getElementById('admin-chat-container');if(acc)acc.id='chat-container';renderChat();}
+  if(id==='t-team'){var ctc=document.getElementById('collab-team-container');if(ctc){var tmp=ctc.id;ctc.id='team-stats-container';renderTeamStats();ctc.id=tmp;}else renderTeamStats();}
+  if(id==='t-chat'){var ccc=document.getElementById('collab-chat-container');if(ccc){var tmp2=ccc.id;ccc.id='chat-container';renderChat();ccc.id=tmp2;}else renderChat();}
+  if(id==='t-admin-team')renderTeamStats();
+  if(id==='t-admin-chat')renderChat();
 }
 
 function sortTable(col,el){
@@ -1811,7 +1815,7 @@ function callNumber(tel, event) {
 
 // ═══ TEAM STATS ══════════════════════════════════════════════════
 function renderTeamStats() {
-  var container = document.getElementById('team-stats-container');
+  var container = document.getElementById('team-stats-container') || document.getElementById('collab-team-container');
   if(!container) return;
 
   // Global stats bar
@@ -1918,7 +1922,7 @@ function renderTeamMonthlyChart() {
 
 // ═══ CHAT GENERAL ════════════════════════════════════════════════
 function renderChat() {
-  var container = document.getElementById('chat-container');
+  var container = document.getElementById('chat-container') || document.getElementById('collab-chat-container');
   if(!container) return;
 
   var messages = state.chatMessages || [];
