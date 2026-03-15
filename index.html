@@ -573,6 +573,7 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
           <button class="btn btn-primary" style="flex:1" onclick="saveContact()">💾 Enregistrer</button>
           <button class="btn btn-purple" onclick="openRdvFromContact()">📅 RDV</button>
         </div>
+        <div id="validate-wrap" style="margin-top:8px;display:none"><button class="btn" style="width:100%;background:rgba(255,215,0,.15);color:#ffd700;border:1px solid #ffd700" onclick="validateContact()">⭐ Valider ce contact (admin)</button></div>
       </div>
       <div>
         <div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">💬 Commentaires</div>
@@ -1658,6 +1659,7 @@ function openModal(idx){
   }
   document.getElementById('modal-note').value=c.note||'';
   renderComments(c);
+  var vw=document.getElementById('validate-wrap');if(vw)vw.style.display=(state.currentUser&&state.currentUser.type==='admin'&&c.status==='done')?'block':'none';
   document.getElementById('contact-modal').classList.add('open');
 }
 
@@ -1731,11 +1733,10 @@ function exportXLSX(collabOnly){
   var ws=XLSX.utils.aoa_to_sheet(rows);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Contacts');XLSX.writeFile(wb,'DataRP_contacts.xlsx');
 }
 
-fbInit();
-
 
 // ═══ FIREBASE REALTIME DATABASE SYNC ════════════════════════════
 var RTDB='https://home-renovation-79c5b-default-rtdb.europe-west1.firebasedatabase.app/datarp';
+var _FBKEY='AIzaSyCax0YjTLYA_HMP_G_kJZKaHCfPpGwrr9s'; // reference only
 var fbBusy=false,fbLastTs=0;
 
 function sdot(s,msg){
@@ -1974,6 +1975,7 @@ function sendChat(cid){
   renderChat(cid);
 }
 
+fbInit();
 </script>
 </body>
 </html>
