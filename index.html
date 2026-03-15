@@ -766,6 +766,7 @@ function showApp(){
   }
   loadSettings();
   startNotifTimer();
+  checkBackupReminder();
   if(state.settings.browserNotif){try{Notification.requestPermission();}catch(e){}}
 }
 
@@ -1793,6 +1794,28 @@ async function fbPoll(){
     sdot('ok','En ligne');
   }catch(e){sdot('err','Hors ligne');}
 }
+// ═══ BACKUP REMINDER ═════════════════════════════════════════════
+function checkBackupReminder(){
+  try{
+    var last=parseInt(localStorage.getItem('lastBackup')||'0');
+    var now=Date.now();
+    var days7=7*24*60*60*1000;
+    if(!last||(now-last)>days7){
+      var daysSince=last?Math.floor((now-last)/(24*60*60*1000)):null;
+      var msg=daysSince?
+        'Pas de backup depuis '+daysSince+' jours. Pensez \u00e0 sauvegarder !':
+        'Pensez \u00e0 faire un backup r\u00e9gulier de vos donn\u00e9es.';
+      setTimeout(function(){toast('\uD83D\uDCBE '+msg,'info');},3000);
+    }
+  }catch(e){}
+}
+var _origBackup=backupData;
+function backupData(){
+  _origBackup();
+  localStorage.setItem('lastBackup',Date.now().toString());
+  toast('\u2705 Backup OK ! Prochain rappel dans 7 jours.','success');
+}
+
 async function fbInit(){
   sdot('sync','Connexion...');
   try{
