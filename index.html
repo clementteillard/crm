@@ -1171,15 +1171,14 @@ function backupData(){
     a.click();
     setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},100);
   }catch(e){
-    // Fallback: data URI
     var uri='data:application/json;charset=utf-8,'+encodeURIComponent(data);
     var a=document.createElement('a');
     a.href=uri;
     a.download='DataRP_backup_'+fmtDate(new Date())+'.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
   }
+  localStorage.setItem('lastBackup',Date.now().toString());
+  toast('✅ Backup téléchargé !','success');
 }
 
 function restoreData(input){
