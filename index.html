@@ -1827,12 +1827,7 @@ function checkBackupReminder(){
     }
   }catch(e){}
 }
-var _origBackup=backupData;
-function backupData(){
-  _origBackup();
-  localStorage.setItem('lastBackup',Date.now().toString());
-  toast('\u2705 Backup OK ! Prochain rappel dans 7 jours.','success');
-}
+
 
 async function fbInit(){
   sdot('sync','Connexion...');
