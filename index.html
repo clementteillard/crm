@@ -296,6 +296,8 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
 .sdot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;flex-shrink:0;}.sdot.ok{background:var(--green);}.sdot.sync{background:var(--yellow);animation:sdp .7s infinite;}.sdot.err{background:var(--red);}@keyframes sdp{0%,100%{opacity:.3;}50%{opacity:1;}}.badge-validated{background:rgba(255,215,0,.15);color:#ffd700;}.badge-validated::before{background:#ffd700;}.sb.sel-validated{background:rgba(255,215,0,.15);color:#ffd700;border-color:#ffd700;}
 .badge-notinterested{background:rgba(128,128,128,.15);color:#888;}
 .badge-notinterested::before{background:#888;}
+.sb.sel-notinterested{background:rgba(128,128,128,.15);color:#888;border-color:#888;font-weight:700;box-shadow:0 0 0 2px #888;}
+.sb.sel-validated{background:rgba(255,215,0,.2);color:#ffd700;border-color:#ffd700;font-weight:700;box-shadow:0 0 0 2px #ffd700;}
 .sb.sel-notinterested{background:rgba(128,128,128,.15);color:#888;border-color:#888;}
 </style>
 </head>
@@ -379,6 +381,7 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
         <select class="filter-select" id="afc" onchange="renderAdminTable()"><option value="">Tous collabs</option></select>
         <select class="filter-select" id="afl" onchange="renderAdminTable()"><option value="">Toutes listes</option></select>
         <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
+        <select class="fsel" id="page-size" onchange="changePageSize()" style="font-size:12px"><option value="100">100 leads</option><option value="300">300 leads</option><option value="99999">Tous</option></select>
         <button class="btn btn-ghost btn-sm" onclick="exportXLSX()">⬇ Excel</button>
       </div>
       <div class="table-wrap"><table>
@@ -528,6 +531,7 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
         <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="collab-search" placeholder="Rechercher…" oninput="renderCollabTable()"></div>
         <select class="filter-select" id="cfs" onchange="renderCollabTable()"><option value="">Tous statuts</option><option value="pending">À contacter</option><option value="inprogress">En cours</option><option value="done">Traité</option><option value="noreply">Pas de réponse</option><option value="validated">⭐ Validé</option><option value="notinterested">❌ Pas intéressé</option></select>
         <button class="btn btn-ghost btn-sm" onclick="exportCSV(true)">⬇ CSV</button>
+        <select class="fsel" id="collab-page-size" onchange="changeCollabPageSize()" style="font-size:12px"><option value="100">100 leads</option><option value="300">300 leads</option><option value="99999">Tous</option></select>
         <button class="btn btn-ghost btn-sm" onclick="exportXLSX(true)">⬇ Excel</button>
       </div>
       <div class="table-wrap"><table>
@@ -630,7 +634,7 @@ var calViewDate = new Date();
 var editingRdvId = null;
 var importRawData = [], importHeaders = [];
 var notifTimer = null;
-var PAGE = 99999;
+var PAGE = 100;
 var sortCol = '', sortDir = 1;
 var selectedIds = {};
 var assignPage = 1, adminPage = 1, collabPage = 1;
@@ -1681,6 +1685,7 @@ function openModal(idx){
     picker.appendChild(btn);
   }
   document.getElementById('modal-note').value=c.note||'';
+  renderNoteHistory(c);
   renderComments(c);
   var vw=document.getElementById('validate-wrap');if(vw)vw.style.display=(state.currentUser&&state.currentUser.type==='admin'&&c.status==='done')?'block':'none';
   document.getElementById('contact-modal').classList.add('open');
@@ -1691,7 +1696,12 @@ function saveContact(){
   var newStatus=document.getElementById('modal-status-picker').dataset.status||c.status;
   var newNote=document.getElementById('modal-note').value;
   if(newStatus!==c.status)addHistory('status',c.idx,c.nom,'Statut: '+STATUSES[c.status].label+' \u2192 '+STATUSES[newStatus].label);
-  if(newNote!==c.note)addHistory('note',c.idx,c.nom,'Note modifi\xE9e');
+  if(newNote!==c.note&&newNote.trim()){
+    addHistory('note',c.idx,c.nom,'Note modifi\xE9e');
+    if(!c.noteHistory)c.noteHistory=[];
+    c.noteHistory.push({text:newNote,who:state.currentUser.name,ts:Date.now()});
+    if(c.noteHistory.length>50)c.noteHistory=c.noteHistory.slice(-50);
+  }
   c.status=newStatus;c.note=newNote;
   save();
   toast('\u2705 Enregistr\xE9');
@@ -1700,6 +1710,7 @@ function saveContact(){
   // Update modal info without closing it
   var vw=document.getElementById('validate-wrap');
   if(vw)vw.style.display=(state.currentUser&&state.currentUser.type==='admin'&&c.status==='done')?'block':'none';
+  renderNoteHistory(c);
 }
 
 function renderComments(c){
@@ -1733,6 +1744,40 @@ function validateContact(){
   toast('⭐ Contact validé !','success');
   renderAdminOverview();renderAdminTable();
 }
+function renderNoteHistory(c){
+  var container = document.getElementById('note-history');
+  if(!container) return;
+  var history = c.noteHistory || [];
+  // Also include current note if exists and not in history
+  if(!history.length && c.note){
+    container.innerHTML = '<div style="font-size:11px;color:var(--muted);padding:6px 0">Note actuelle enregistrée.</div>';
+    return;
+  }
+  if(!history.length){container.innerHTML='';return;}
+  var html = '<div style="font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Historique des notes</div>';
+  html += '<div style="max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:6px">';
+  for(var i=history.length-1;i>=0;i--){
+    var n=history[i];
+    html += '<div style="background:var(--surface2);border-radius:6px;padding:8px 10px">'
+      + '<div style="font-size:10px;color:var(--muted);margin-bottom:3px"><span style="color:var(--accent);font-weight:600">'+esc(n.who)+'</span> &middot; '+fmtTs(n.ts)+'</div>'
+      + '<div style="font-size:12px">'+esc(n.text)+'</div>'
+      + '</div>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function changePageSize(){
+  var sel=document.getElementById('page-size');
+  if(sel)PAGE=parseInt(sel.value);
+  renderAdminTable();
+}
+function changeCollabPageSize(){
+  var sel=document.getElementById('collab-page-size');
+  if(sel)PAGE=parseInt(sel.value);
+  renderCollabTable();
+}
+
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===e.currentTarget)closeModal(el.id);});});
 
