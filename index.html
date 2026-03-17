@@ -294,6 +294,9 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
 
 @media(max-width:640px){td:nth-child(3),th:nth-child(3),td:nth-child(4),th:nth-child(4){display:none;}}
 .sdot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;flex-shrink:0;}.sdot.ok{background:var(--green);}.sdot.sync{background:var(--yellow);animation:sdp .7s infinite;}.sdot.err{background:var(--red);}@keyframes sdp{0%,100%{opacity:.3;}50%{opacity:1;}}.badge-validated{background:rgba(255,215,0,.15);color:#ffd700;}.badge-validated::before{background:#ffd700;}.sb.sel-validated{background:rgba(255,215,0,.15);color:#ffd700;border-color:#ffd700;}
+.badge-notinterested{background:rgba(128,128,128,.15);color:#888;}
+.badge-notinterested::before{background:#888;}
+.sb.sel-notinterested{background:rgba(128,128,128,.15);color:#888;border-color:#888;}
 </style>
 </head>
 <body>
@@ -372,7 +375,7 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
     <div id="t-ct" class="panel">
       <div class="toolbar">
         <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="admin-search" placeholder="Rechercher…" oninput="renderAdminTable()"></div>
-        <select class="filter-select" id="afs" onchange="renderAdminTable()"><option value="">Tous statuts</option><option value="pending">À contacter</option><option value="inprogress">En cours</option><option value="done">Traité</option><option value="noreply">Pas de réponse</option><option value="validated">⭐ Validé</option></select>
+        <select class="filter-select" id="afs" onchange="renderAdminTable()"><option value="">Tous statuts</option><option value="pending">À contacter</option><option value="inprogress">En cours</option><option value="done">Traité</option><option value="noreply">Pas de réponse</option><option value="validated">⭐ Validé</option><option value="notinterested">❌ Pas intéressé</option></select>
         <select class="filter-select" id="afc" onchange="renderAdminTable()"><option value="">Tous collabs</option></select>
         <select class="filter-select" id="afl" onchange="renderAdminTable()"><option value="">Toutes listes</option></select>
         <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
@@ -523,7 +526,7 @@ tr.row-selected td{background:rgba(79,142,247,.07) !important;}
       <div class="stats-bar" id="collab-stats-bar"></div>
       <div class="toolbar">
         <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="collab-search" placeholder="Rechercher…" oninput="renderCollabTable()"></div>
-        <select class="filter-select" id="cfs" onchange="renderCollabTable()"><option value="">Tous statuts</option><option value="pending">À contacter</option><option value="inprogress">En cours</option><option value="done">Traité</option><option value="noreply">Pas de réponse</option><option value="validated">⭐ Validé</option></select>
+        <select class="filter-select" id="cfs" onchange="renderCollabTable()"><option value="">Tous statuts</option><option value="pending">À contacter</option><option value="inprogress">En cours</option><option value="done">Traité</option><option value="noreply">Pas de réponse</option><option value="validated">⭐ Validé</option><option value="notinterested">❌ Pas intéressé</option></select>
         <button class="btn btn-ghost btn-sm" onclick="exportCSV(true)">⬇ CSV</button>
         <button class="btn btn-ghost btn-sm" onclick="exportXLSX(true)">⬇ Excel</button>
       </div>
@@ -627,7 +630,7 @@ var calViewDate = new Date();
 var editingRdvId = null;
 var importRawData = [], importHeaders = [];
 var notifTimer = null;
-var PAGE = 50;
+var PAGE = 99999;
 var sortCol = '', sortDir = 1;
 var selectedIds = {};
 var assignPage = 1, adminPage = 1, collabPage = 1;
@@ -637,6 +640,8 @@ var STATUSES = {
   inprogress: {label:'\u{1F7E1} En cours',          cls:'badge-inprogress', sel:'sel-inprogress'},
   done:       {label:'\u{1F7E2} Trait\xE9',         cls:'badge-done',       sel:'sel-done'},
   noreply:    {label:'\u{1F534} Pas de r\xE9ponse', cls:'badge-noreply',    sel:'sel-noreply'},
+  validated:  {label:'\u2B50 Valid\u00e9 admin',      cls:'badge-validated',  sel:'sel-validated'},
+  notinterested: {label:'\u274C Pas int\u00e9ress\u00e9', cls:'badge-notinterested', sel:'sel-notinterested'}
 };
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -677,6 +682,7 @@ function init(){
 }
 
 function save(){
+  fbLastTs=Date.now(); // block poll during save
   fbSync();
 }
 
@@ -1687,8 +1693,13 @@ function saveContact(){
   if(newStatus!==c.status)addHistory('status',c.idx,c.nom,'Statut: '+STATUSES[c.status].label+' \u2192 '+STATUSES[newStatus].label);
   if(newNote!==c.note)addHistory('note',c.idx,c.nom,'Note modifi\xE9e');
   c.status=newStatus;c.note=newNote;
-  save();closeModal('contact-modal');toast('\u2705 Enregistr\xE9');
+  save();
+  toast('\u2705 Enregistr\xE9');
+  // Refresh in background without closing modal
   if(state.currentUser.type==='admin'){renderAdminOverview();renderAdminTable();}else renderCollabView();
+  // Update modal info without closing it
+  var vw=document.getElementById('validate-wrap');
+  if(vw)vw.style.display=(state.currentUser&&state.currentUser.type==='admin'&&c.status==='done')?'block':'none';
 }
 
 function renderComments(c){
@@ -1785,6 +1796,7 @@ async function fbSync(){
     if(!ok){sdot('err','Erreur');fbBusy=false;return;}
     for(var i=0;i<nc;i++)await fbWrite('c'+i,state.contacts.slice(i*300,(i+1)*300));
     sdot('ok','Synchronise');
+    fbLastTs = Date.now(); // update after successful save
   }catch(e){sdot('err','Hors ligne');}
   fbBusy=false;
 }
@@ -1792,7 +1804,7 @@ async function fbPoll(){
   if(fbBusy)return;
   try{
     var main=await fbRead('main');
-    if(!main||!main.ts||main.ts<=fbLastTs){sdot('ok','En ligne');return;}
+    if(!main||!main.ts||main.ts<=(fbLastTs+1000)){sdot('ok','En ligne');return;}
     state.collabs=main.collabs||[];
     state.lists=main.lists||[];
     state.rdvs=main.rdvs||[];
@@ -1860,7 +1872,7 @@ async function fbInit(){
     }
   }catch(e){sdot('err','Hors ligne');console.error('fbInit:',e);}
   refreshLoginDropdown();
-  setInterval(fbPoll,5000);
+  setInterval(fbPoll,10000);
 }
 
 // ═══ RINGOVER ════════════════════════════════════════════════════
