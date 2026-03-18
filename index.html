@@ -812,30 +812,47 @@ function sortTable(col,el){
 function renderAdminOverview(){
   var total=state.contacts.length;
   var done=state.contacts.filter(function(c){return c.status==='done';}).length;
+  var validated=state.contacts.filter(function(c){return c.status==='validated';}).length;
   var inp=state.contacts.filter(function(c){return c.status==='inprogress';}).length;
   var nr=state.contacts.filter(function(c){return c.status==='noreply';}).length;
+  var notint=state.contacts.filter(function(c){return c.status==='notinterested';}).length;
   var tod=fmtDate(new Date());
-  var rdvs=state.rdvs.filter(function(r){return r.date>=tod;}).length;
+  var rdvsCount=state.rdvs.filter(function(r){return r.date>=tod;}).length;
   document.getElementById('admin-stats').innerHTML=
-    '<div class="stat-card blue"><div class="stat-val">'+total+'</div><div class="stat-label">Total</div></div>'+
-    '<div class="stat-card green"><div class="stat-val">'+done+'</div><div class="stat-label">Trait\xE9s</div></div>'+
+    '<div class="stat-card blue"><div class="stat-val">'+total+'</div><div class="stat-label">Total leads</div></div>'+
+    '<div class="stat-card green"><div class="stat-val">'+(done+validated)+'</div><div class="stat-label">Trait\u00e9s</div></div>'+
+    '<div class="stat-card" style="flex:1;min-width:100px"><div class="stat-val" style="color:#ffd700">'+validated+'</div><div class="stat-label">Valid\u00e9s</div></div>'+
     '<div class="stat-card yellow"><div class="stat-val">'+inp+'</div><div class="stat-label">En cours</div></div>'+
-    '<div class="stat-card orange"><div class="stat-val">'+nr+'</div><div class="stat-label">Sans r\xE9ponse</div></div>'+
-    '<div class="stat-card purple"><div class="stat-val">'+rdvs+'</div><div class="stat-label">RDV \xE0 venir</div></div>';
+    '<div class="stat-card orange"><div class="stat-val">'+nr+'</div><div class="stat-label">Sans r\u00e9ponse</div></div>'+
+    '<div class="stat-card" style="flex:1;min-width:100px"><div class="stat-val" style="color:#888">'+notint+'</div><div class="stat-label">Pas int\u00e9ress\u00e9s</div></div>'+
+    '<div class="stat-card purple"><div class="stat-val">'+rdvsCount+'</div><div class="stat-label">RDV \u00e0 venir</div></div>';
   var grid=document.getElementById('collab-overview-grid');
   if(!state.collabs.length){grid.innerHTML='<div class="empty-state"><div class="empty-icon">\u{1F465}</div><div>Aucun collaborateur.</div></div>';return;}
   var html='';
   for(var i=0;i<state.collabs.length;i++){
-    var c=state.collabs[i];
-    var mine=state.contacts.filter(function(x){return x.collabId===c.id;});
+    var col=state.collabs[i];
+    var mine=state.contacts.filter(function(x){return x.collabId===col.id;});
     var doneC=mine.filter(function(x){return x.status==='done';}).length;
-    var pct=mine.length?Math.round(doneC/mine.length*100):0;
-    html+='<div class="collab-card"><div class="collab-name">'+esc(c.name)+'</div>';
-    html+='<div class="collab-code">Code: '+esc(c.pass)+(c.email?' &middot; '+esc(c.email):'')+'</div>';
+    var validC=mine.filter(function(x){return x.status==='validated';}).length;
+    var inpC=mine.filter(function(x){return x.status==='inprogress';}).length;
+    var nrC=mine.filter(function(x){return x.status==='noreply';}).length;
+    var niC=mine.filter(function(x){return x.status==='notinterested';}).length;
+    var contacted=doneC+validC+inpC+nrC+niC;
+    var pct=mine.length?Math.round(contacted/mine.length*100):0;
+    var donePct=mine.length?Math.round((doneC+validC)/mine.length*100):0;
+    html+='<div class="collab-card"><div class="collab-name">'+esc(col.name)+'</div>';
+    html+='<div class="collab-code">Code: '+esc(col.pass)+(col.email?' &middot; '+esc(col.email):'')+'</div>';
+    html+='<div style="font-size:10px;display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">';
+    html+='<span style="color:var(--green)">\u2705 '+(doneC+validC)+'</span>';
+    html+='<span style="color:var(--yellow)">\u{1F7E1} '+inpC+'</span>';
+    html+='<span style="color:var(--red)">\u{1F534} '+nrC+'</span>';
+    html+='<span style="color:#888">\u274C '+niC+'</span>';
+    html+='</div>';
     html+='<div class="collab-progress"><div class="collab-bar" style="width:'+pct+'%"></div></div>';
-    html+='<div style="font-size:11px;color:var(--muted)"><span style="color:var(--green)">'+doneC+'</span> / <b>'+mine.length+'</b> &middot; <b>'+pct+'%</b></div></div>';
+    html+='<div style="font-size:11px;color:var(--muted)">Contact\u00e9s: <b style="color:var(--accent)">'+pct+'%</b> &middot; Trait\u00e9s: <b style="color:var(--green)">'+donePct+'%</b> / <b>'+mine.length+'</b></div></div>';
   }
   grid.innerHTML=html;
+  renderMonthlyChart();
 }
 
 function renderAdminTable(){
