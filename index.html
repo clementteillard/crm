@@ -1890,7 +1890,7 @@ async function fbInit(){
   sdot('sync','Connexion...');
   try{
     var main=await fbRead('main');
-    if(main&&main.collabs!==undefined&&main.collabs!==null){
+    if(main&&main.collabs!==undefined&&main.collabs!==null&&main.nc){
       state.collabs=main.collabs||[];
       state.lists=main.lists||[];
       state.rdvs=main.rdvs||[];
@@ -1901,7 +1901,7 @@ async function fbInit(){
       fbLastTs=main.ts||0;
       var nc=main.nc||1,allC=[];
       for(var i=0;i<nc;i++){var cd=await fbRead('c'+i);if(cd&&Array.isArray(cd))allC=allC.concat(cd);}
-      if(allC.length)state.contacts=allC;
+      if(allC.length>100)state.contacts=allC; // Only replace if substantial data loaded
       sdot('ok','En ligne');
     } else {
       state.lists=[
