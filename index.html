@@ -1940,12 +1940,14 @@ function renderTeamStats(containerId){
   var validated=state.contacts.filter(function(c){return c.status==='validated';}).length;
   var inprogress=state.contacts.filter(function(c){return c.status==='inprogress';}).length;
   var noreply=state.contacts.filter(function(c){return c.status==='noreply';}).length;
+  var notint=state.contacts.filter(function(c){return c.status==='notinterested';}).length;
   var html='<div class="stats-bar">'
     +'<div class="stat-card blue"><div class="stat-val">'+total+'</div><div class="stat-label">Total</div></div>'
     +'<div class="stat-card green"><div class="stat-val">'+(done+validated)+'</div><div class="stat-label">Trait\u00e9s</div></div>'
     +'<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-val" style="color:#ffd700">'+validated+'</div><div class="stat-label">Valid\u00e9s</div></div>'
     +'<div class="stat-card yellow"><div class="stat-val">'+inprogress+'</div><div class="stat-label">En cours</div></div>'
     +'<div class="stat-card orange"><div class="stat-val">'+noreply+'</div><div class="stat-label">Sans r\u00e9ponse</div></div>'
+    +'<div class="stat-card" style="flex:1;min-width:100px"><div class="stat-val" style="color:#888">'+notint+'</div><div class="stat-label">Pas int\u00e9ress\u00e9s</div></div>'
     +'</div>';
   html+='<div class="stit">Progression de l\'\u00e9quipe</div>';
   html+='<div class="tw" style="margin-bottom:24px"><table><thead><tr><th>Collaborateur</th><th>Total</th><th>Trait\u00e9s</th><th>Valid\u00e9s</th><th>En cours</th><th>%</th></tr></thead><tbody>';
@@ -1963,6 +1965,7 @@ function renderTeamStats(containerId){
       +'<td><span class="badge badge-done">'+dn+'</span></td>'
       +'<td><span class="badge badge-validated">'+vl+'</span></td>'
       +'<td><span class="badge badge-inprogress">'+ip+'</span></td>'
+      +'<td>'+(function(){var ni=state.contacts.filter(function(x){return x.collabId===col.id&&x.status==='notinterested';}).length;return '<span class="badge" style="background:rgba(128,128,128,.15);color:#888">'+ni+'</span>';})()+'</td>'
       +'<td><b>'+pct+'%</b></td>'
       +'</tr>';
   }
