@@ -132,14 +132,14 @@ td{padding:10px 14px;font-size:13px;vertical-align:middle;}
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
 .badge::before{content:'';width:5px;height:5px;border-radius:50%;}
-.badge-pending{background:rgba(115,115,115,.12);color:var(--muted);}
-.badge-pending::before{background:var(--muted);}
+.badge-pending{background:rgba(99,130,241,.13);color:#6382f1;}
+.badge-pending::before{background:#6382f1;}
 .badge-inprogress{background:rgba(234,179,8,.1);color:var(--yellow);}
 .badge-inprogress::before{background:var(--yellow);}
 .badge-done{background:rgba(34,197,94,.1);color:var(--green);}
 .badge-done::before{background:var(--green);}
-.badge-noreply{background:rgba(239,68,68,.1);color:var(--red);}
-.badge-noreply::before{background:var(--red);}
+.badge-noreply{background:rgba(251,146,60,.12);color:#fb923c;}
+.badge-noreply::before{background:#fb923c;}
 
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
@@ -157,10 +157,10 @@ td{padding:10px 14px;font-size:13px;vertical-align:middle;}
 .info-key{color:var(--muted);width:90px;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;flex-shrink:0;padding-top:2px;}
 .status-picker{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
 .status-btn{padding:6px 12px;border-radius:20px;font-family:var(--fm);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .12s;}
-.status-btn.sel-pending{background:rgba(115,115,115,.2);color:var(--text);border-color:var(--muted);}
+.status-btn.sel-pending{background:rgba(99,130,241,.15);color:#6382f1;border-color:#6382f1;}
 .status-btn.sel-inprogress{background:rgba(234,179,8,.12);color:var(--yellow);border-color:var(--yellow);}
 .status-btn.sel-done{background:rgba(34,197,94,.12);color:var(--green);border-color:var(--green);}
-.status-btn.sel-noreply{background:rgba(239,68,68,.12);color:var(--red);border-color:var(--red);}
+.status-btn.sel-noreply{background:rgba(251,146,60,.12);color:#fb923c;border-color:#fb923c;}
 textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:var(--fm);font-size:13px;resize:vertical;min-height:65px;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:12px;}
 textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
 
@@ -303,11 +303,9 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
 
 @media(max-width:640px){td:nth-child(3),th:nth-child(3),td:nth-child(4),th:nth-child(4){display:none;}}
 .sdot{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block;flex-shrink:0;}.sdot.ok{background:var(--green);}.sdot.sync{background:var(--yellow);animation:sdp .7s infinite;}.sdot.err{background:var(--red);}@keyframes sdp{0%,100%{opacity:.3;}50%{opacity:1;}}.badge-validated{background:rgba(249,115,22,.12);color:var(--accent);}.badge-validated::before{background:var(--accent);}.status-btn.sel-validated{background:rgba(249,115,22,.15);color:var(--accent);border-color:var(--accent);font-weight:700;box-shadow:0 0 0 2px var(--accent-glow);}
-.badge-notinterested{background:rgba(128,128,128,.12);color:#888;}
-.badge-notinterested::before{background:#888;}
-.status-btn.sel-notinterested{background:rgba(128,128,128,.12);color:#888;border-color:#888;font-weight:700;box-shadow:0 0 0 2px rgba(128,128,128,.2);}
-.status-btn.sel-validated{background:rgba(249,115,22,.15);color:var(--accent);border-color:var(--accent);font-weight:700;box-shadow:0 0 0 2px var(--accent-glow);}
-.status-btn.sel-notinterested{background:rgba(128,128,128,.12);color:#888;border-color:#888;font-weight:700;box-shadow:0 0 0 2px rgba(128,128,128,.2);}
+.badge-notinterested{background:rgba(239,68,68,.12);color:var(--red);}
+.badge-notinterested::before{background:var(--red);}
+.status-btn.sel-notinterested{background:rgba(239,68,68,.12);color:var(--red);border-color:var(--red);font-weight:700;box-shadow:0 0 0 2px rgba(239,68,68,.2);}
 
 /* ═══ KPI DASHBOARD ═══ */
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px;}
@@ -498,7 +496,6 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
     <div class="tabs">
       <button class="tab active" onclick="showTab('t-ov',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg> Vue d'ensemble</button>
       <button class="tab" onclick="showTab('t-ct',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></svg> Contacts</button>
-      <button class="tab" onclick="showTab('t-kb',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg> Kanban</button>
       <button class="tab" onclick="showTab('t-co',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Collaborateurs</button>
       <button class="tab" onclick="showTab('t-as',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Assigner</button>
       <button class="tab" onclick="showTab('t-ca',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Agenda</button>
@@ -571,19 +568,6 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
         <tbody id="admin-tbody"></tbody>
       </table></div>
       <div class="pagination" id="admin-pagination"></div>
-    </div>
-
-    <div id="t-kb" class="panel">
-      <div class="kanban-toolbar">
-        <select class="filter-select" id="kb-filter-collab" onchange="renderKanban()"><option value="">Tous les collabs</option></select>
-        <select class="filter-select" id="kb-filter-list" onchange="renderKanban()"><option value="">Toutes les listes</option></select>
-        <div class="search-wrap" style="flex:1;max-width:240px">
-          <span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-          <input type="text" id="kb-search" placeholder="Rechercher…" oninput="renderKanban()">
-        </div>
-        <span style="font-size:12px;color:var(--muted)" id="kb-total-label"></span>
-      </div>
-      <div class="kanban-board" id="kanban-board"></div>
     </div>
 
     <div id="t-co" class="panel">
@@ -706,7 +690,6 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
   <div id="collab-area" style="display:none">
     <div class="tabs">
       <button class="tab active" onclick="showTab('t-cc',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></svg> Mes contacts</button>
-      <button class="tab" onclick="showTab('t-ck',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg> Kanban</button>
       <button class="tab"<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></svg> Mes contacts</button>
       <button class="tab" onclick="showTab('t-ccal',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Mon agenda</button>
       <button class="tab" onclick="showTab('t-cst',this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg> Avancement</button>
@@ -731,7 +714,7 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
       </table></div>
       <div class="pagination" id="collab-pagination"></div>
     </div>
-    <div id="t-ck" class="panel"><div class="kanban-board" id="kanban-board-collab"></div></div>
+
     <div id="t-ccal" class="panel"><div id="cal-collab-wrap"></div></div>
     <div id="t-cst" class="panel">
       <div class="stats-bar" id="collab-stats-bar2"></div>
