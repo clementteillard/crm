@@ -3135,7 +3135,7 @@ function callNumber(tel,event){
   if(!tel)return;
   var clean=tel.replace(/[^0-9+]/g,'');
   if(CALL_MODE==='teams'){
-    window.location.href='msteams://call?phone='+encodeURIComponent(clean);
+    window.open('https://teams.microsoft.com/l/call/0/0?users=4:'+encodeURIComponent(clean),'_blank');
   } else if(CALL_MODE==='ringover'){
     window.open('https://app.ringover.com/call/'+encodeURIComponent(clean),'_blank');
   } else {
