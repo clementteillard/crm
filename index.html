@@ -403,6 +403,142 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+
+/* ═══════════════════════════════════════
+   MOBILE RESPONSIVE — max 768px
+═══════════════════════════════════════ */
+@media(max-width:768px){
+
+  /* ── TOPBAR ── */
+  .topbar{padding:0 12px;height:52px;}
+  .global-search-wrap{display:none;}
+  .topbar-logo{font-size:14px;}
+  .topbar-logo-icon{width:28px;height:28px;}
+  .sync-status{display:none;}
+  .user-badge{display:none;}
+  .daily-goal-wrap{display:none;}
+  .topbar-right{gap:5px;}
+  .notif-bell,.theme-toggle{width:32px;height:32px;}
+  /* Bouton déconnexion : icône seulement */
+  .topbar-right .btn span{display:none;}
+  .topbar-right .btn svg{margin:0;}
+  .topbar-right .btn{padding:6px 8px;min-width:32px;justify-content:center;}
+
+  /* ── LOGIN ── */
+  .login-box{width:92vw;padding:32px 22px;}
+  .login-logo-text{font-size:20px;}
+
+  /* ── TABS : scroll horizontal ── */
+  .tabs{padding:0 8px;height:auto;min-height:44px;flex-wrap:nowrap;overflow-x:auto;gap:1px;}
+  .tab{padding:8px 10px;font-size:11px;gap:4px;white-space:nowrap;}
+  /* Masquer le libellé texte des onglets, garder l'icône */
+  .tab span.tab-label{display:none;}
+
+  /* ── PANEL ── */
+  .panel{padding:12px;}
+
+  /* ── STATS BAR ── */
+  .stats-bar{gap:8px;}
+  .stat-card{min-width:90px;padding:12px 10px;}
+  .stat-val{font-size:20px;}
+  .stat-label{font-size:10px;}
+
+  /* ── KPI GRID ── */
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .kpi-val{font-size:20px;}
+  .kpi-card{padding:12px 10px;}
+
+  /* ── PIPELINE ── */
+  .pipeline-row{grid-template-columns:1fr 1fr;gap:8px;}
+  .pipeline-card{padding:12px;}
+
+  /* ── COLLAB GRID ── */
+  .collab-grid{grid-template-columns:1fr;}
+  .cc2-stats{grid-template-columns:repeat(2,1fr);}
+
+  /* ── TOOLBAR ── */
+  .toolbar{gap:6px;}
+  .toolbar .btn-sm{padding:7px 10px;font-size:12px;}
+  .search-wrap input{font-size:13px;}
+  .filter-select{font-size:12px;padding:7px 8px;}
+
+  /* ── TABLE : masquer colonnes non essentielles ── */
+  td:nth-child(3),th:nth-child(3),
+  td:nth-child(4),th:nth-child(4),
+  td:nth-child(5),th:nth-child(5){display:none;}
+  th{padding:8px 10px;font-size:9px;}
+  td{padding:9px 10px;font-size:12px;}
+  .td-email{display:none;}
+
+  /* ── MODAL ── */
+  .modal{width:95vw;padding:18px;border-radius:14px;}
+  .modal-lg{width:95vw;}
+  .modal-title{font-size:16px;}
+  .status-picker{gap:5px;}
+  .status-btn{padding:5px 9px;font-size:11px;}
+
+  /* ── CALENDAR ── */
+  .cal-layout{grid-template-columns:1fr;}
+  .cal-cell{min-height:52px;padding:4px 3px;}
+  .cal-date{font-size:11px;width:17px;height:17px;}
+  .cal-rdv{font-size:9px;}
+
+  /* ── ASSIGN PANEL ── */
+  .load-card{min-width:130px;max-width:none;flex:1;}
+  #assign-collab-load{flex-wrap:wrap;}
+
+  /* ── CHART GRID ── */
+  .chart-grid{grid-template-columns:1fr;}
+  .chgrd{grid-template-columns:1fr;}
+
+  /* ── IMPORT ── */
+  .import-col-map{flex-direction:column;}
+  .col-map-item{min-width:unset;}
+  .add-collab-form{flex-direction:column;}
+
+  /* ── NOTIF PANEL ── */
+  .notif-panel{width:calc(100vw - 16px);right:8px;top:60px;}
+
+  /* ── SECTION TITLE ── */
+  .section-title{font-size:14px;}
+
+  /* ── GLOBAL SEARCH : bouton mobile ── */
+  .mobile-search-btn{display:flex !important;}
+}
+
+/* Bouton recherche mobile (caché par défaut) */
+.mobile-search-btn{
+  display:none;
+  width:32px;height:32px;border-radius:9px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--muted);align-items:center;
+  justify-content:center;cursor:pointer;flex-shrink:0;
+}
+.mobile-search-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* Overlay recherche mobile */
+.mobile-search-overlay{
+  display:none;position:fixed;top:0;left:0;right:0;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:10px 12px;z-index:200;gap:8px;align-items:center;
+}
+.mobile-search-overlay.open{display:flex;}
+.mobile-search-overlay input{
+  flex:1;background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:9px 12px;color:var(--text);
+  font-family:var(--fm);font-size:14px;outline:none;
+}
+.mobile-search-overlay input:focus{border-color:var(--accent);}
+.mobile-search-close{
+  background:none;border:none;color:var(--muted);font-size:20px;
+  cursor:pointer;padding:0 4px;line-height:1;
+}
+
+/* ── Extra petit (iPhone SE, etc.) ── */
+@media(max-width:375px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .pipeline-row{grid-template-columns:1fr;}
+  .tab{padding:7px 8px;font-size:10px;}
+}
 </style>
 </head>
 <body>
@@ -462,6 +598,10 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
       </div>
     </div>
     <div class="topbar-right">
+      <!-- Bouton recherche mobile -->
+      <button class="mobile-search-btn" onclick="openMobileSearch()" title="Rechercher">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
       <button class="theme-toggle" onclick="toggleTheme()" title="Changer thème" id="theme-btn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
@@ -484,6 +624,12 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
     </div>
   </div>
   <div class="notif-panel" id="notif-panel">
+    <!-- Overlay recherche mobile -->
+    <div class="mobile-search-overlay" id="mobile-search-overlay">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="mobile-search-input" placeholder="Rechercher…" oninput="globalSearchMobile()" autocomplete="off">
+      <button class="mobile-search-close" onclick="closeMobileSearch()">×</button>
+    </div>
     <div class="notif-panel-header">
       <div class="notif-panel-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Notifications</div>
       <button class="btn btn-ghost btn-sm" onclick="clearNotifs()">Tout lu</button>
@@ -682,6 +828,23 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-ghost" onclick="testBrowserNotif()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Tester popup</button>
         <button class="btn btn-ghost" onclick="testSound()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Tester son</button>
+      </div>
+      <div style="margin-top:20px">
+        <div class="section-title" style="font-size:14px;margin-bottom:10px">&#128222; Mode d'appel</div>
+        <div class="notif-settings">
+          <div class="notif-row">
+            <div>
+              <div class="notif-label">Application d'appel</div>
+              <div class="notif-sub">Choisissez comment ouvrir les appels depuis le CRM</div>
+            </div>
+            <select class="filter-select" id="call-mode-select" onchange="setCallMode(this.value)" style="min-width:180px">
+              <option value="teams">&#128241; Microsoft Teams</option>
+              <option value="ringover">&#128222; Ringover</option>
+              <option value="tel">&#128222; Telephone natif</option>
+            </select>
+          </div>
+        </div>
+        <div id="call-mode-info" style="margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:9px;font-size:12px;color:var(--muted)"></div>
       </div>
     </div>
   </div>
@@ -1031,6 +1194,28 @@ function closeGlobalSearch(){
   document.getElementById('global-results').classList.remove('open');
 }
 document.addEventListener('click',function(e){if(!e.target.closest('.global-search-wrap'))closeGlobalSearch();});
+
+// ── Recherche mobile ──
+function openMobileSearch(){
+  var ov=document.getElementById('mobile-search-overlay');
+  if(ov){ov.classList.add('open');var inp=document.getElementById('mobile-search-input');if(inp){inp.value='';inp.focus();}}
+}
+function closeMobileSearch(){
+  var ov=document.getElementById('mobile-search-overlay');
+  if(ov)ov.classList.remove('open');
+  var res=document.getElementById('global-results');
+  if(res)res.classList.remove('open');
+}
+function globalSearchMobile(){
+  var inp=document.getElementById('mobile-search-input');
+  if(!inp)return;
+  var mainInp=document.getElementById('global-search');
+  if(mainInp)mainInp.value=inp.value;
+  globalSearch();
+  // Repositionner les résultats sous l'overlay
+  var res=document.getElementById('global-results');
+  if(res){res.style.top='';res.style.left='';res.style.width='';}
+}
 // Ctrl+K shortcut
 document.addEventListener('keydown',function(e){
   if((e.ctrlKey||e.metaKey)&&e.key==='k'){
@@ -1115,6 +1300,7 @@ function showTab(id,btn){
   if(id==='t-admin-chat')renderChat('admin-chat-container');
   if(id==='t-collab-team')renderTeamStats('collab-team-container');
   if(id==='t-collab-chat')renderChat('collab-chat-container');
+  if(id==='t-st')updateCallModeUI();
 }
 
 function sortTable(col,el){
@@ -2940,14 +3126,45 @@ async function fbInit(){
   setInterval(fbPoll,10000);
 }
 
-// ═══ RINGOVER ════════════════════════════════════════════════════
-var USE_RINGOVER=true;
+// ═══ MODE APPEL ══════════════════════════════════════════════════
+// Valeurs possibles : 'teams' | 'ringover' | 'tel'
+var CALL_MODE = (localStorage.getItem('obs_call_mode') || 'teams');
+
 function callNumber(tel,event){
   if(event)event.stopPropagation();
   if(!tel)return;
   var clean=tel.replace(/[^0-9+]/g,'');
-  if(USE_RINGOVER){window.open('https://app.ringover.com/call/'+encodeURIComponent(clean),'_blank');}
-  else{window.location.href='tel:'+tel;}
+  if(CALL_MODE==='teams'){
+    window.location.href='msteams://call?phone='+encodeURIComponent(clean);
+  } else if(CALL_MODE==='ringover'){
+    window.open('https://app.ringover.com/call/'+encodeURIComponent(clean),'_blank');
+  } else {
+    window.location.href='tel:'+clean;
+  }
+}
+
+function updateCallModeUI(){
+  var sel=document.getElementById('call-mode-select');
+  if(sel)sel.value=CALL_MODE;
+  var info=document.getElementById('call-mode-info');
+  if(info){
+    var msgs={
+      'teams':'Clic sur un numero ouvre Microsoft Teams directement pour passer l appel.',
+      'ringover':'Clic sur un numero ouvre Ringover dans le navigateur.',
+      'tel':'Clic sur un numero utilise le telephone natif de votre appareil.'
+    };
+    info.textContent=msgs[CALL_MODE]||'';
+  }
+}
+
+function setCallMode(mode){
+  CALL_MODE=mode;
+  localStorage.setItem('obs_call_mode',mode);
+  var sel=document.getElementById('call-mode-select');
+  if(sel)sel.value=mode;
+  var labels={'teams':'Microsoft Teams','ringover':'Ringover','tel':'Telephone natif'};
+  toast('Mode appel : '+(labels[mode]||mode),'info');
+  updateCallModeUI();
 }
 
 // ═══ TEAM STATS ══════════════════════════════════════════════════
