@@ -1554,7 +1554,7 @@ function renderAdminPage(filtered){
       var tr=document.createElement('tr');
       tr.setAttribute('data-idx', String(c.idx));
       tr.onclick=function(){openModal(this.getAttribute('data-idx'));};
-      var telCell=c.tel?'<a href="tel:'+esc(c.tel)+'" onclick="event.stopPropagation()">'+esc(c.tel)+'</a>':'-';
+      var telCell=c.tel?'<span class="td-tel-link" data-tel="'+esc(c.tel)+'" onclick="callNumber(this.getAttribute(\'data-tel\'),event)" style="color:var(--accent);cursor:pointer;font-weight:500">'+esc(c.tel)+'</span>':'—';
       tr.innerHTML='<td class="td-nom">'+esc(c.nom)+'</td><td class="td-tel">'+telCell+'</td><td class="td-email">'+esc(c.email)+'</td><td>'+esc(c.cp)+'</td><td style="font-size:11px;color:var(--muted)">'+esc(lst?lst.name:'—')+'</td><td>'+esc(collab?collab.name:'—')+'</td><td><span class="badge '+s.cls+'">'+s.label+'</span></td><td style="font-size:11px">'+(nextRdv?'<span style="color:var(--purple)"> '+nextRdv.date+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>'
         +'<td class="td-actions"><div class="quick-actions">'
         +'<div class="qa-btn qa-inprogress" onclick="event.stopPropagation();quickSetStatus(\''+c.idx+'\',\'inprogress\',\'En cours\')" title="En cours">↻</div>'
@@ -2293,7 +2293,7 @@ function renderCollabPage(filtered){
       var c=slice[i],s=STATUSES[c.status]||STATUSES.pending,nextRdv=null;
       for(var j=0;j<state.rdvs.length;j++){if(String(state.rdvs[j].contactIdx)===String(c.idx)&&state.rdvs[j].date>=tod){if(!nextRdv||state.rdvs[j].date<nextRdv.date)nextRdv=state.rdvs[j];}}
       var tr=document.createElement('tr');tr.setAttribute('data-idx',String(c.idx));tr.onclick=function(){openModal(this.getAttribute('data-idx'));};
-      var telCell=c.tel?'<a href="tel:'+esc(c.tel)+'" onclick="event.stopPropagation()">'+esc(c.tel)+'</a>':'-';
+      var telCell=c.tel?'<span class="td-tel-link" data-tel="'+esc(c.tel)+'" onclick="callNumber(this.getAttribute(\'data-tel\'),event)" style="color:var(--accent);cursor:pointer;font-weight:500">'+esc(c.tel)+'</span>':'—';
       tr.innerHTML='<td class="td-nom">'+esc(c.nom)+'</td><td class="td-tel">'+telCell+'</td><td class="td-email">'+esc(c.email)+'</td><td>'+esc(c.cp)+'</td><td><span class="badge '+s.cls+'">'+s.label+'</span></td><td style="font-size:11px">'+(nextRdv?'<span style="color:var(--purple)"> '+nextRdv.date+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>';
       tbody.appendChild(tr);
     }
@@ -2331,7 +2331,7 @@ function openModal(idx){
   var collab=null;for(var i=0;i<state.collabs.length;i++){if(state.collabs[i].id===c.collabId){collab=state.collabs[i];break;}}
   var infoDiv=document.getElementById('modal-info');infoDiv.innerHTML='';
   function addRow(key,html){var row=document.createElement('div');row.className='info-row';row.innerHTML='<div class="info-key">'+key+'</div><div>'+html+'</div>';infoDiv.appendChild(row);}
-  addRow('T\xE9l\xE9phone',c.tel?'<a href="tel:'+esc(c.tel)+'" style="color:var(--accent)">'+esc(c.tel)+'</a>':'-');
+  addRow('T\xE9l\xE9phone',c.tel?'<span class="td-tel-link" data-tel="'+esc(c.tel)+'" onclick="callNumber(this.getAttribute(\'data-tel\'),event)" style="color:var(--accent);cursor:pointer">'+esc(c.tel)+'</span>':'-');
   addRow('Email',esc(c.email));
   addRow('Code postal',esc(c.cp));
   addRow('Assign\xE9 \xE0',collab?'<span style="color:var(--green)">'+esc(collab.name)+'</span>':'<span style="color:var(--muted)">Non assign\xE9</span>');
