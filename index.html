@@ -5,7 +5,75 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OBS Power CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+function updateGroupSelect(){
+  var sel=document.getElementById('import-group-select');
+  if(!sel)return;
+  var current=sel.value;
+  var groups_html='<option value="">-- Créer nouveau groupe --</option><option value="none">-- Aucun groupe --</option>';
+  if(state.groups){
+    for(var i=0;i<state.groups.length;i++){
+      groups_html+='<option value="'+state.groups[i].id+'">'+esc(state.groups[i].name)+'</option>';
+    }
+  }
+  sel.innerHTML=groups_html;
+  sel.value=current;
+}
+
+function updateGroupFilters(){
+  var collabSel=document.getElementById('collab-group-filter');
+  if(!collabSel)return;
+  var current=collabSel.value;
+  var groups_html='<option value="">Tous groupes</option>';
+  if(state.groups){
+    for(var i=0;i<state.groups.length;i++){
+      groups_html+='<option value="'+state.groups[i].id+'">'+esc(state.groups[i].name)+'</option>';
+    }
+  }
+  collabSel.innerHTML=groups_html;
+  collabSel.value=current;
+}
+
+function handleGroupSelectChange(){
+  var sel=document.getElementById('import-group-select');
+  var groupName=document.getElementById('import-group-name');
+  if(!groupName){
+    var field=document.createElement('div');
+    field.className='field';
+    field.style.margin='0';
+    field.style.minWidth='200px';
+    field.id='import-group-name-field';
+    field.innerHTML='<label>Nom du groupe</label><input type="text" id="import-group-name" placeholder="Ex: Restaurants" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px">';
+    sel.parentNode.insertBefore(field,sel.nextSibling);
+  }
+  var nameField=document.getElementById('import-group-name-field');
+  if(sel.value===''){nameField.style.display='block';}else{nameField.style.display='none';}
+}
+
+var originalConfirmImport=confirmImport;
+confirmImport=function(){
+  var sel=document.getElementById('import-group-select');
+  if(sel){
+    if(sel.value===''){
+      var newGroupName=document.getElementById('import-group-name').value.trim();
+      if(newGroupName){
+        importGroupId='group_'+Date.now();
+        state.groups.push({id:importGroupId,name:newGroupName});
+        updateGroupSelect();
+        updateGroupFilters();
+      }else{
+        importGroupId=null;
+      }
+    }else if(sel.value==='none'){
+      importGroupId=null;
+    }else{
+      importGroupId=sel.value;
+    }
+  }
+  originalConfirmImport.call(this);
+};
+
+</script>
 <style>
 :root{
   --bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--border:#2a2a2a;
@@ -593,7 +661,7 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
       </div>
       <div class="global-search-wrap">
         <span class="global-search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-        <input type="text" id="global-search" placeholder="Rechercher… (Ctrl+K)" oninput="globalSearch()" onkeydown="handleSearchKey(event)" autocomplete="off"><kbd class="search-kbd" id="search-kbd">^K</kbd>
+        <input type="text" id="global-search" placeholder="Rechercher… (Ctrl+K)" oninput="globalSearch()" onkeydown="handleSearchKey(event)" autocomplete="off">
         <div class="global-results" id="global-results"></div>
       </div>
     </div>
@@ -667,7 +735,6 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
         <div class="search-wrap"><span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" id="admin-search" placeholder="Rechercher…" oninput="renderAdminTable()"></div>
         <select class="filter-select" id="afs" onchange="renderAdminTable()"><option value="">Tous statuts</option><option value="pending">● À contacter</option><option value="inprogress">● En cours</option><option value="done">● Traité</option><option value="noreply">● Pas de réponse</option><option value="validated">★ Validé</option><option value="notinterested">× Pas intéressé</option></select>
         <select class="filter-select" id="afc" onchange="renderAdminTable()"><option value="">Tous collabs</option></select>
-        <select class="filter-select" id="afg" onchange="renderAdminTable()"><option value="">Tous groupes</option></select>
         <select class="filter-select" id="afl" onchange="renderAdminTable()"><option value="">Toutes listes</option></select>
         <button class="btn btn-ghost btn-sm" onclick="toggleDateFilters()" id="date-filter-btn">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -774,15 +841,7 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
           <div class="import-col-map" id="import-col-map"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
             <div class="field" style="margin:0;min-width:170px"><label>Nom de la liste</label><input type="text" id="import-list-name" placeholder="Liste Normandie 2024"></div>
-            <div class="field" style="margin:0;min-width:180px">
-              <label>Groupe client</label>
-              <select id="import-list-group" class="filter-select" style="width:100%">
-                <option value="Poêle à granulés">Poêle à granulés</option>
-                <option value="nouveau">+ Nouveau groupe...</option>
-              </select>
-              <input type="text" id="import-list-group-new" placeholder="Nom du nouveau groupe" style="display:none;margin-top:6px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 11px;color:var(--text);font-size:13px;outline:none">
-            </div>
-            <button class="btn btn-primary" style="width:auto" onclick="confirmImport()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Importer</button>
+            <div class="field" style="margin:0;min-width:200px"><label>Groupe</label><select id="import-group-select" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px"><option value="">-- Créer nouveau groupe --</option><option value="none">-- Aucun groupe --</option></select></div><button class="btn btn-primary" style="width:auto" onclick="confirmImport()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Importer</button>
             <button class="btn btn-ghost btn-sm" onclick="cancelImport()">Annuler</button>
           </div>
           <div class="table-wrap" style="max-height:200px;overflow-y:auto"><table><thead><tr id="preview-thead"></tr></thead><tbody id="preview-tbody"></tbody></table></div>
@@ -875,8 +934,7 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
       <div id="collab-next-contact-bar"></div><div class="stats-bar" id="collab-stats-bar"></div>
       <div class="toolbar">
         <div class="search-wrap"><span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" id="collab-search" placeholder="Rechercher…" oninput="renderCollabTable()"></div>
-        <select class="filter-select" id="collab-filter-group" onchange="renderCollabTable()"><option value="">Tous groupes</option></select>
-        <select class="filter-select" id="cfs" onchange="renderCollabTable()"><option value="">Tous statuts</option><option value="pending">● À contacter</option><option value="inprogress">● En cours</option><option value="done">● Traité</option><option value="noreply">● Pas de réponse</option><option value="validated">★ Validé</option><option value="notinterested">× Pas intéressé</option></select>
+        <select class="filter-select" id="collab-group-filter" onchange="renderCollabTable()"><option value="">Tous groupes</option></select><select class="filter-select" id="cfs" onchange="renderCollabTable()"><option value="">Tous statuts</option><option value="pending">● À contacter</option><option value="inprogress">● En cours</option><option value="done">● Traité</option><option value="noreply">● Pas de réponse</option><option value="validated">★ Validé</option><option value="notinterested">× Pas intéressé</option></select>
         <button class="btn btn-ghost btn-sm" onclick="exportCSV(true)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg> CSV</button>
         <select class="fsel" id="collab-page-size" onchange="changeCollabPageSize()" style="font-size:12px"><option value="100">100 leads</option><option value="300">300 leads</option><option value="99999">Tous</option></select>
         <button class="btn btn-ghost btn-sm" onclick="exportXLSX(true)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg> Excel</button>
@@ -1482,21 +1540,9 @@ function renderAdminTable(){
   adminPage=1;
   var q=(document.getElementById('admin-search').value||'').toLowerCase();
   var sf=document.getElementById('afs').value;
-  // Filtre groupe admin
-  var gsel=document.getElementById('afg'),gval=gsel?gsel.value:'';
-  if(gsel){
-    var groups=[...new Set(state.lists.map(function(l){return l.groupe||'';}).filter(Boolean))];
-    gsel.innerHTML='<option value="">Tous groupes</option>';
-    groups.forEach(function(g){var o=document.createElement('option');o.value=g;o.textContent=g;gsel.appendChild(o);});
-    gsel.value=gval;
-  }
-  var gf=gsel?gsel.value:'';
   var lsel=document.getElementById('afl'),lval=lsel.value;
   lsel.innerHTML='<option value="">Toutes listes</option>';
-  for(var i=0;i<state.lists.length;i++){
-    if(gf&&(state.lists[i].groupe||'')!==gf)continue;
-    var o=document.createElement('option');o.value=state.lists[i].id;o.textContent=state.lists[i].name+(state.lists[i].groupe?' ['+state.lists[i].groupe+']':'');lsel.appendChild(o);
-  }
+  for(var i=0;i<state.lists.length;i++){var o=document.createElement('option');o.value=state.lists[i].id;o.textContent=state.lists[i].name;lsel.appendChild(o);}
   lsel.value=lval;var lf=lsel.value;
   var csel=document.getElementById('afc'),cval=csel.value;
   csel.innerHTML='<option value="">Tous collabs</option>';
@@ -1514,7 +1560,6 @@ function renderAdminTable(){
     if(!(!q||txt.includes(q)))return false;
     if(!(!sf||c.status===sf))return false;
     if(!(!cf||c.collabId===cf))return false;
-    if(!(!gf||(function(){var lst=state.lists.find(function(x){return x.id===c.listId;});return lst&&(lst.groupe||'')==gf;}())))return false;
     if(!(!lf||c.listId===lf))return false;
     // Date filters
     var crdvs=state.rdvs.filter(function(r){return String(r.contactIdx)===String(c.idx);});
@@ -2219,15 +2264,19 @@ function showImportPreview(filename){
   document.getElementById('import-preview').style.display='block';
   document.getElementById('import-summary').innerHTML='Fichier : <b>'+esc(filename)+'</b> — <b>'+importRawData.length+'</b> lignes';
   document.getElementById('import-list-name').value=filename.replace(/\.[^.]+$/,'');
-  var auto={nom:'',tel:'',email:'',cp:''};
+  var auto={nom:'',tel:'',email:'',cp:'',proprietaire:'',poste:'',etablissement:'',ville:''};
   for(var i=0;i<importHeaders.length;i++){
     var hl=importHeaders[i].toLowerCase();
-    if(/nom|name|prenom|soci/.test(hl))auto.nom=importHeaders[i];
+    if(/nom|name|prenom|soci|gérant|propriétaire/.test(hl))auto.nom=importHeaders[i];
     else if(/tel|phone|mobile|portable/.test(hl))auto.tel=importHeaders[i];
     else if(/mail|email/.test(hl))auto.email=importHeaders[i];
     else if(/cp|postal|zip|code/.test(hl))auto.cp=importHeaders[i];
+    else if(/propriétaire|gerant|gérant/.test(hl))auto.proprietaire=importHeaders[i];
+    else if(/poste|role|fonction/.test(hl))auto.poste=importHeaders[i];
+    else if(/établissement|etablissement|restaurant|business|lieu/.test(hl))auto.etablissement=importHeaders[i];
+    else if(/ville|city|town/.test(hl))auto.ville=importHeaders[i];
   }
-  var fields=[{key:'nom',label:'Nom'},{key:'tel',label:'T\xE9l\xE9phone'},{key:'email',label:'Email'},{key:'cp',label:'CP'}];
+  var fields=[{key:'nom',label:'Nom'},{key:'tel',label:'T\xE9l\xE9phone'},{key:'email',label:'Email'},{key:'cp',label:'CP'},{key:'proprietaire',label:'Propri\xE9taire'},{key:'poste',label:'Poste'},{key:'etablissement',label:'\xC9tablissement'},{key:'ville',label:'Ville'}];
   var mapDiv=document.getElementById('import-col-map');mapDiv.innerHTML='';
   for(var i=0;i<fields.length;i++){
     var f=fields[i];
@@ -2247,42 +2296,19 @@ function showImportPreview(filename){
 }
 
 function confirmImport(){
-  var gSel=document.getElementById('import-list-group');
-  var gNew=document.getElementById('import-list-group-new');
-  var listGroupe=(gSel&&gSel.value==='nouveau'&&gNew&&gNew.value.trim())?gNew.value.trim():(gSel?gSel.value:'Poêle à granulés');
   var listName=document.getElementById('import-list-name').value.trim()||'Nouvelle liste';
-  var mapNom=document.getElementById('map_nom').value,mapTel=document.getElementById('map_tel').value,mapEmail=document.getElementById('map_email').value,mapCp=document.getElementById('map_cp').value;
+  var mapNom=document.getElementById('map_nom').value,mapTel=document.getElementById('map_tel').value,mapEmail=document.getElementById('map_email').value,mapCp=document.getElementById('map_cp').value,mapProp=document.getElementById('map_proprietaire').value,mapPoste=document.getElementById('map_poste').value,mapEtab=document.getElementById('map_etablissement').value,mapVille=document.getElementById('map_ville').value;
   var listId='list_'+Date.now();
   function getV(row,h){return h?String(row[importHeaders.indexOf(h)]||''):''; }
   for(var i=0;i<importRawData.length;i++){
     var row=importRawData[i];
-    state.contacts.push({idx:listId+'_'+i,nom:getV(row,mapNom),tel:getV(row,mapTel),email:getV(row,mapEmail),cp:getV(row,mapCp),status:'pending',note:'',collabId:null,listId:listId,comments:[]});
+    state.contacts.push({idx:listId+'_'+i,nom:getV(row,mapNom),tel:getV(row,mapTel),email:getV(row,mapEmail),cp:getV(row,mapCp),proprietaire:getV(row,mapProp),poste:getV(row,mapPoste),etablissement:getV(row,mapEtab),ville:getV(row,mapVille),status:'pending',note:'',collabId:null,listId:listId,comments:[]});
   }
-  state.lists.push({id:listId,name:listName,groupe:listGroupe,count:importRawData.length,date:new Date().toLocaleDateString('fr-FR')});
+  state.lists.push({id:listId,name:listName,count:importRawData.length,date:new Date().toLocaleDateString('fr-FR')});
   save();cancelImport();toast('\u2705 '+importRawData.length+' contacts import\xE9s');renderImportLists();renderAdminOverview();renderAdminTable();
 }
 
 function cancelImport(){document.getElementById('import-preview').style.display='none';document.getElementById('import-file').value='';importRawData=[];importHeaders=[];}
-
-// Affiche/cache le champ texte nouveau groupe
-document.addEventListener('change',function(e){
-  if(e.target&&e.target.id==='import-list-group'){
-    var newField=document.getElementById('import-list-group-new');
-    if(newField){
-      newField.style.display=e.target.value==='nouveau'?'block':'none';
-      // Peupler le select avec les groupes existants
-      var existing=[...new Set(state.lists.map(function(l){return l.groupe||'';}).filter(Boolean))];
-      var sel=document.getElementById('import-list-group');
-      if(sel){
-        var cur=sel.value;
-        sel.innerHTML='';
-        existing.forEach(function(g){var o=document.createElement('option');o.value=g;o.textContent=g;sel.appendChild(o);});
-        var oNew=document.createElement('option');oNew.value='nouveau';oNew.textContent='+ Nouveau groupe...';sel.appendChild(oNew);
-        sel.value=cur;
-      }
-    }
-  }
-});
 
 function renderImportLists(){
   document.getElementById('lists-count').textContent=state.lists.length;
@@ -2324,24 +2350,8 @@ function renderCollabStats(){
 function renderCollabTable(){
   collabPage=1;
   var q=(document.getElementById('collab-search').value||'').toLowerCase();
-  var sf=document.getElementById('cfs').value;
-  var cgf=document.getElementById('collab-filter-group')?document.getElementById('collab-filter-group').value:'';
-  // Remplir filtre groupe collab
-  var cgsel=document.getElementById('collab-filter-group');
-  if(cgsel){
-    var cgval=cgsel.value;
-    var cgroups=[...new Set(state.lists.map(function(l){return l.groupe||'';}).filter(Boolean))];
-    cgsel.innerHTML='<option value="">Tous groupes</option>';
-    cgroups.forEach(function(g){var o=document.createElement('option');o.value=g;o.textContent=g;cgsel.appendChild(o);});
-    cgsel.value=cgval;cgf=cgsel.value;
-  }
-  var filtered=myContacts().filter(function(c){
-    var txt=(c.nom+c.tel+c.email+c.cp).toLowerCase();
-    if(!(!q||txt.includes(q)))return false;
-    if(!(!sf||c.status===sf))return false;
-    if(cgf){var lst=state.lists.find(function(x){return x.id===c.listId;});if(!lst||(lst.groupe||'')!==cgf)return false;}
-    return true;
-  });
+  var sf=document.getElementById('cfs').value;var gf=document.getElementById('collab-group-filter').value;
+  var filtered=myContacts().filter(function(c){var txt=(c.nom+c.tel+c.email+c.cp).toLowerCase();return(!q||txt.includes(q))&&(!sf||c.status===sf)&&(!gf||c.groupId===gf);});
   renderCollabPage(filtered);
 }
 
@@ -2396,6 +2406,10 @@ function openModal(idx){
   addRow('T\xE9l\xE9phone',c.tel?'<span class="td-tel-link" data-tel="'+esc(c.tel)+'" onclick="callNumber(this.getAttribute(\'data-tel\'),event)" style="color:var(--accent);cursor:pointer">'+esc(c.tel)+'</span>':'-');
   addRow('Email',esc(c.email));
   addRow('Code postal',esc(c.cp));
+  if(c.proprietaire)addRow('Propri\xE9taire',esc(c.proprietaire));
+  if(c.poste)addRow('Poste',esc(c.poste));
+  if(c.etablissement)addRow('\xC9tablissement',esc(c.etablissement));
+  if(c.ville)addRow('Ville',esc(c.ville));
   addRow('Assign\xE9 \xE0',collab?'<span style="color:var(--green)">'+esc(collab.name)+'</span>':'<span style="color:var(--muted)">Non assign\xE9</span>');
   for(var i=0;i<Math.min(rdvList.length,3);i++){
     var r=rdvList[i];
@@ -2671,9 +2685,7 @@ async function fbPoll(){
   if(fbBusy)return;
   try{
     var main=await fbRead('main');
-    if(!main||!main.ts){sdot('ok','En ligne');return;}
-    // Comparer strictement : ignorer uniquement si le timestamp est identique ou antérieur (sans tolérance +1000)
-    if(main.ts<=fbLastTs){sdot('ok','En ligne');return;}
+    if(!main||!main.ts||main.ts<=(fbLastTs+1000)){sdot('ok','En ligne');return;}
     state.collabs=main.collabs||[];
     state.lists=main.lists||[];
     state.rdvs=main.rdvs||[];
@@ -2682,9 +2694,9 @@ async function fbPoll(){
     if(main.settings)state.settings=Object.assign({},state.settings,main.settings);
     var nc=main.nc||1,allC=[];
     for(var i=0;i<nc;i++){var cd=await fbRead('c'+i);if(cd&&Array.isArray(cd))allC=allC.concat(cd);}
-    if(allC.length>100)state.contacts=allC;
+    if(allC.length)state.contacts=allC;
     fbLastTs=main.ts;
-    toast('Mise à jour reçue','info');
+    toast('Mise a jour recue','info');
     refreshLoginDropdown();
     if(state.currentUser){
       if(state.currentUser.type==='admin'){renderAdminOverview();renderAdminTable();renderCollabManage();}
@@ -3175,9 +3187,9 @@ async function fbInit(){
       sdot('ok','En ligne');
     } else {
       state.lists=[
-        {id:'initial',name:'Liste initiale',groupe:'Poêle à granulés',count:INITIAL_CONTACTS.length,date:new Date().toLocaleDateString('fr-FR')},
-        {id:'list1',name:'Liste Feuille calcul',groupe:'Poêle à granulés',count:LIST1_CONTACTS.length,date:new Date().toLocaleDateString('fr-FR')},
-        {id:'list2',name:'Liste Gaz Fioul',groupe:'Poêle à granulés',count:LIST2_CONTACTS.length,date:new Date().toLocaleDateString('fr-FR')}
+        {id:'initial',name:'Liste initiale',count:INITIAL_CONTACTS.length,date:new Date().toLocaleDateString('fr-FR')},
+        {id:'list1',name:'Liste Feuille calcul',count:LIST1_CONTACTS.length,date:new Date().toLocaleDateString('fr-FR')},
+        {id:'list2',name:'Liste Gaz Fioul',count:LIST2_CONTACTS.length,date:new Date().toLocaleDateString('fr-FR')}
       ];
       for(var i=0;i<INITIAL_CONTACTS.length;i++){var c=INITIAL_CONTACTS[i];state.contacts.push({idx:'initial_'+i,nom:c.nom,tel:c.tel,email:c.email,cp:c.cp,status:'pending',note:'',collabId:null,listId:'initial',comments:[]});}
       for(var i=0;i<LIST1_CONTACTS.length;i++){var c=LIST1_CONTACTS[i];state.contacts.push({idx:'list1_'+i,nom:c.nom,tel:c.tel,email:c.email,cp:c.cp,status:'pending',note:'',collabId:null,listId:'list1',comments:[]});}
@@ -3197,14 +3209,7 @@ var CALL_MODE = (localStorage.getItem('obs_call_mode') || 'teams');
 function callNumber(tel,event){
   if(event)event.stopPropagation();
   if(!tel)return;
-  // Nettoyer : garder uniquement chiffres et +
   var clean=tel.replace(/[^0-9+]/g,'');
-  // Normaliser en format international +33XXXXXXXXX
-  // Si commence par 33 (sans +) → ajouter le +
-  if(/^33[0-9]/.test(clean)){clean='+'+clean;}
-  // Si commence par 0 → remplacer par +33
-  else if(/^0[0-9]/.test(clean)){clean='+33'+clean.substring(1);}
-  // Si déjà +33 → ok
   if(CALL_MODE==='teams'){
     window.open('https://teams.microsoft.com/l/call/0/0?users=4:'+encodeURIComponent(clean),'_blank');
   } else if(CALL_MODE==='ringover'){
@@ -3267,8 +3272,8 @@ function renderTeamStats(containerId){
     var ip=cc.filter(function(x){return x.status==='inprogress';}).length;
     var pct=cc.length?Math.round((dn+vl)/cc.length*100):0;
     var isMe=state.currentUser&&col.id===state.currentUser.id;
-    html+='<tr'+(isMe?' style="background:rgba(79,142,247,.07)"':'')+'>'
-      +'<td style="font-weight:'+(isMe?700:400)+'">'+esc(col.name)+(isMe?' \u2190':'')+'</td>'
+    html+='<tr style="cursor:pointer'+(isMe?';background:rgba(79,142,247,.07)':'')+'" onclick="openCollabModal(\''+esc(col.id)+'\')"'
+      +'><td style="font-weight:'+(isMe?700:400)+'">'+esc(col.name)+(isMe?' \u2190':'')+'</td>'
       +'<td>'+cc.length+'</td>'
       +'<td><span class="badge badge-done">'+dn+'</span></td>'
       +'<td><span class="badge badge-validated">'+vl+'</span></td>'
@@ -3283,6 +3288,49 @@ function renderTeamStats(containerId){
   html+='<div class="chgrd"><div class="chcrd"><canvas id="chart-team-'+cid+'" height="200"></canvas></div></div>';
   container.innerHTML=html;
   renderTeamChart('chart-team-'+cid);
+}
+
+function openCollabModal(collabId){
+  var collab=null;
+  for(var i=0;i<state.collabs.length;i++){
+    if(state.collabs[i].id===collabId){collab=state.collabs[i];break;}
+  }
+  if(!collab)return;
+  
+  var contacts=state.contacts.filter(function(c){return c.collabId===collab.id;});
+  var done=contacts.filter(function(c){return c.status==='done';}).length;
+  var validated=contacts.filter(function(c){return c.status==='validated';}).length;
+  var inprogress=contacts.filter(function(c){return c.status==='inprogress';}).length;
+  var noreply=contacts.filter(function(c){return c.status==='noreply';}).length;
+  var notint=contacts.filter(function(c){return c.status==='notinterested';}).length;
+  
+  var modal=document.getElementById('contact-modal');
+  if(!modal){modal=document.createElement('div');modal.id='contact-modal';modal.className='modal';modal.innerHTML='<div class="modal-content" style="max-width:700px"><div class="modal-header"><div><h2 id="collab-modal-name"></h2><p id="collab-modal-sub" style="font-size:12px;color:var(--muted);margin-top:4px"></p></div><button onclick="closeModal(\'contact-modal\')" class="modal-close">&times;</button></div><div id="collab-modal-body" style="padding:20px;max-height:600px;overflow-y:auto"></div></div>';document.body.appendChild(modal);}
+  
+  document.getElementById('collab-modal-name').textContent=collab.name;
+  document.getElementById('collab-modal-sub').textContent=contacts.length+' contacts assignés';
+  
+  var stats='<div class="stats-bar" style="margin-bottom:16px">'
+    +'<div class="stat-card" style="flex:1;min-width:80px"><div class="stat-val" style="font-size:20px">'+contacts.length+'</div><div class="stat-label">Total</div></div>'
+    +'<div class="stat-card green" style="flex:1;min-width:80px"><div class="stat-val" style="font-size:20px">'+(done+validated)+'</div><div class="stat-label">Trait\xE9s</div></div>'
+    +'<div class="stat-card yellow" style="flex:1;min-width:80px"><div class="stat-val" style="font-size:20px">'+inprogress+'</div><div class="stat-label">En cours</div></div>'
+    +'<div class="stat-card orange" style="flex:1;min-width:80px"><div class="stat-val" style="font-size:20px">'+noreply+'</div><div class="stat-label">Sans r\xE9p.</div></div>'
+    +'</div>';
+  
+  var tbody='<table style="width:100%;font-size:13px"><thead><tr><th style="text-align:left">Nom</th><th style="text-align:left">T\xE9l\xE9phone</th><th style="text-align:left">Statut</th></tr></thead><tbody>';
+  for(var i=0;i<contacts.length;i++){
+    var c=contacts[i];
+    var s=STATUSES[c.status]||STATUSES.pending;
+    tbody+='<tr style="border-top:1px solid var(--border);cursor:pointer" onclick="closeModal(\'contact-modal\');openModal(\''+esc(c.idx)+'\')">'
+      +'<td style="padding:8px 0">'+esc(c.nom)+'</td>'
+      +'<td style="padding:8px 0;color:var(--accent)">'+esc(c.tel)+'</td>'
+      +'<td style="padding:8px 0"><span class="badge '+s.cls+'">'+s.label+'</span></td>'
+      +'</tr>';
+  }
+  tbody+='</tbody></table>';
+  
+  document.getElementById('collab-modal-body').innerHTML=stats+'<div style="font-size:11px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;font-weight:600;margin-bottom:10px">Ses contacts</div>'+tbody;
+  modal.style.display='flex';
 }
 
 function renderTeamChart(canvasId){
@@ -3356,6 +3404,74 @@ function sendChat(cid){
 }
 
 fbInit();
+
+function updateGroupSelect(){
+  var sel=document.getElementById('import-group-select');
+  if(!sel)return;
+  var current=sel.value;
+  var groups_html='<option value="">-- Créer nouveau groupe --</option><option value="none">-- Aucun groupe --</option>';
+  if(state.groups){
+    for(var i=0;i<state.groups.length;i++){
+      groups_html+='<option value="'+state.groups[i].id+'">'+esc(state.groups[i].name)+'</option>';
+    }
+  }
+  sel.innerHTML=groups_html;
+  sel.value=current;
+}
+
+function updateGroupFilters(){
+  var collabSel=document.getElementById('collab-group-filter');
+  if(!collabSel)return;
+  var current=collabSel.value;
+  var groups_html='<option value="">Tous groupes</option>';
+  if(state.groups){
+    for(var i=0;i<state.groups.length;i++){
+      groups_html+='<option value="'+state.groups[i].id+'">'+esc(state.groups[i].name)+'</option>';
+    }
+  }
+  collabSel.innerHTML=groups_html;
+  collabSel.value=current;
+}
+
+function handleGroupSelectChange(){
+  var sel=document.getElementById('import-group-select');
+  var groupName=document.getElementById('import-group-name');
+  if(!groupName){
+    var field=document.createElement('div');
+    field.className='field';
+    field.style.margin='0';
+    field.style.minWidth='200px';
+    field.id='import-group-name-field';
+    field.innerHTML='<label>Nom du groupe</label><input type="text" id="import-group-name" placeholder="Ex: Restaurants" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px">';
+    sel.parentNode.insertBefore(field,sel.nextSibling);
+  }
+  var nameField=document.getElementById('import-group-name-field');
+  if(sel.value===''){nameField.style.display='block';}else{nameField.style.display='none';}
+}
+
+var originalConfirmImport=confirmImport;
+confirmImport=function(){
+  var sel=document.getElementById('import-group-select');
+  if(sel){
+    if(sel.value===''){
+      var newGroupName=document.getElementById('import-group-name').value.trim();
+      if(newGroupName){
+        importGroupId='group_'+Date.now();
+        state.groups.push({id:importGroupId,name:newGroupName});
+        updateGroupSelect();
+        updateGroupFilters();
+      }else{
+        importGroupId=null;
+      }
+    }else if(sel.value==='none'){
+      importGroupId=null;
+    }else{
+      importGroupId=sel.value;
+    }
+  }
+  originalConfirmImport.call(this);
+};
+
 </script>
 
 <!-- GOAL MODAL -->
