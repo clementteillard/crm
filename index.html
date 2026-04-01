@@ -73,6 +73,13 @@ confirmImport=function(){
   originalConfirmImport.call(this);
 };
 
+
+function getNowCambodia(){
+  var now=new Date();
+  var utc=new Date(now.getTime()+now.getTimezoneOffset()*60*1000);
+  return new Date(utc.getTime()+7*60*60*1000);
+}
+
 </script>
 <style>
 :root{
@@ -1386,7 +1393,7 @@ function renderAdminOverview(){
   var nr=state.contacts.filter(function(c){return c.status==='noreply';}).length;
   var notint=state.contacts.filter(function(c){return c.status==='notinterested';}).length;
   var pending=state.contacts.filter(function(c){return c.status==='pending';}).length;
-  var tod=fmtDate(new Date());
+  var tod=fmtDate(getNowCambodia());
   var rdvsToday=state.rdvs.filter(function(r){return r.date===tod;}).length;
   var rdvsWeek=state.rdvs.filter(function(r){return r.date>=tod;}).length;
   var assigned=state.contacts.filter(function(c){return c.collabId;}).length;
@@ -1552,7 +1559,7 @@ function renderAdminTable(){
   var dfrom=document.getElementById('filter-date-from')?document.getElementById('filter-date-from').value:'';
   var dto=document.getElementById('filter-date-to')?document.getElementById('filter-date-to').value:'';
   var dtype=document.getElementById('filter-date-type')?document.getElementById('filter-date-type').value:'rdv';
-  var tod=fmtDate(new Date());
+  var tod=fmtDate(getNowCambodia());
   var weekEnd=fmtDate(new Date(Date.now()+7*86400000));
 
   var filtered=state.contacts.filter(function(c){
@@ -1604,7 +1611,7 @@ function renderAdminTable(){
 }
 
 function renderAdminPage(filtered){
-  var tod=fmtDate(new Date()),pages=Math.ceil(filtered.length/PAGE)||1;
+  var tod=fmtDate(getNowCambodia()),pages=Math.ceil(filtered.length/PAGE)||1;
   var slice=filtered.slice((adminPage-1)*PAGE,adminPage*PAGE);
   var tbody=document.getElementById('admin-tbody');
   if(!slice.length){
@@ -2063,7 +2070,7 @@ function renderCalendar(wrapperId,isAdmin){
   var y=calViewDate.getFullYear(),m=calViewDate.getMonth();
   var months=['Janvier','F\xE9vrier','Mars','Avril','Mai','Juin','Juillet','Ao\xFBt','Septembre','Octobre','Novembre','D\xE9cembre'];
   var days=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
-  var tod=fmtDate(new Date());
+  var tod=fmtDate(getNowCambodia());
   var firstDay=new Date(y,m,1);
   var lastDay=new Date(y,m+1,0);
   var startDow=firstDay.getDay()-1;if(startDow<0)startDow=6;
@@ -2356,7 +2363,7 @@ function renderCollabTable(){
 }
 
 function renderCollabPage(filtered){
-  var tod=fmtDate(new Date()),pages=Math.ceil(filtered.length/PAGE)||1;
+  var tod=fmtDate(getNowCambodia()),pages=Math.ceil(filtered.length/PAGE)||1;
   var slice=filtered.slice((collabPage-1)*PAGE,collabPage*PAGE);
   var tbody=document.getElementById('collab-tbody');tbody.innerHTML='';
   if(!slice.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state">Aucun r\xE9sultat</div></td></tr>';}
@@ -2539,7 +2546,7 @@ function exportPDFStats(){
   var nr=state.contacts.filter(function(c){return c.status==='noreply';}).length;
   var notint=state.contacts.filter(function(c){return c.status==='notinterested';}).length;
   var pending=state.contacts.filter(function(c){return c.status==='pending';}).length;
-  var tod=fmtDate(new Date());
+  var tod=fmtDate(getNowCambodia());
   var rdvsWeek=state.rdvs.filter(function(r){return r.date>=tod;}).length;
   var assigned=state.contacts.filter(function(c){return c.collabId;}).length;
   var convRate=total?Math.round((done+validated)/total*100):0;
@@ -2808,7 +2815,7 @@ function renderKanban(){
   var q=(document.getElementById('kb-search')?document.getElementById('kb-search').value||'':'').toLowerCase();
   var cf=kbCollab?kbCollab.value:'';
   var lf=kbList?kbList.value:'';
-  var tod=fmtDate(new Date());
+  var tod=fmtDate(getNowCambodia());
 
   // Filter contacts
   var filtered=state.contacts.filter(function(c){
@@ -3019,7 +3026,7 @@ function saveGoals(){
 function renderNextContact(containerId, collabFilter){
   var el=document.getElementById(containerId);
   if(!el)return;
-  var tod=fmtDate(new Date());
+  var tod=fmtDate(getNowCambodia());
   // Priority: 1) inprogress with RDV today 2) inprogress without RDV 3) pending
   var candidates=state.contacts.filter(function(c){
     if(collabFilter&&c.collabId!==collabFilter)return false;
@@ -3112,7 +3119,7 @@ function renderCollabKanban(){
   var board=document.getElementById('kanban-board-collab');
   if(!board||!state.currentUser)return;
   var uid=state.currentUser.id;
-  var tod=fmtDate(new Date());
+  var tod=fmtDate(getNowCambodia());
   var cols=[
     {id:'pending',   label:'À contacter',color:'var(--muted)'},
     {id:'inprogress',label:'En cours',    color:'var(--yellow)'},
@@ -3471,6 +3478,13 @@ confirmImport=function(){
   }
   originalConfirmImport.call(this);
 };
+
+
+function getNowCambodia(){
+  var now=new Date();
+  var utc=new Date(now.getTime()+now.getTimezoneOffset()*60*1000);
+  return new Date(utc.getTime()+7*60*60*1000);
+}
 
 </script>
 
