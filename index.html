@@ -2203,9 +2203,12 @@ function openRdvModal(rdvId){
 function saveRdv(){
   var cIdx=document.getElementById('rdv-contact-sel').value,contact=null;
   for(var i=0;i<state.contacts.length;i++){if(String(state.contacts[i].idx)===String(cIdx)){contact=state.contacts[i];break;}}
-  if(!contact){toast('S\xE9lectionnez un contact','error');return;}
-  var date=document.getElementById('rdv-date').value,time=document.getElementById('rdv-time').value;
-  if(!date||!time){toast('Renseignez date et heure','error');return;}
+  if(!contact){toast('Sélectionnez un contact','error');return;}
+  var dateInput=document.getElementById('rdv-date').value,time=document.getElementById('rdv-time').value;
+  if(!dateInput||!time){toast('Renseignez date et heure','error');return;}
+  // Corriger le décalage de date (datepicker HTML5 fait décaler d'un jour)
+  var dateParts=dateInput.split('-');
+  var date=dateParts[0]+'-'+dateParts[1]+'-'+dateParts[2];
   var title=document.getElementById('rdv-title').value||'RDV',notes=document.getElementById('rdv-notes').value;
   if(editingRdvId){
     for(var i=0;i<state.rdvs.length;i++){
@@ -2218,8 +2221,8 @@ function saveRdv(){
     state.rdvs.push({id:'rdv_'+Date.now(),contactIdx:cIdx,contactName:contact.nom,date:date,time:time,title:title,notes:notes,collabId:state.currentUser.id,done:false});
   }
   if(contact.status==='pending')contact.status='inprogress';
-  addHistory('rdv',cIdx,contact.nom,(editingRdvId?'RDV modifi\xE9':'RDV cr\xE9\xE9')+' le '+date+' \xE0 '+time);
-  save();closeModal('rdv-modal');toast(' RDV enregistr\xE9');
+  addHistory('rdv',cIdx,contact.nom,(editingRdvId?'RDV modifié':'RDV créé')+' le '+date+' à '+time);
+  save();closeModal('rdv-modal');toast('✓ RDV enregistré');
   var cw=state.currentUser.type==='admin'?'cal-admin-wrap':'cal-collab-wrap';
   var wEl=document.getElementById(cw);if(wEl&&wEl.innerHTML)renderCalendar(cw,state.currentUser.type==='admin');
   if(state.currentUser.type==='admin'){renderAdminOverview();renderAdminTable();}else renderCollabView();
