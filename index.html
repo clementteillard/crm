@@ -705,7 +705,7 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
       <div class="table-wrap"><table>
         <thead><tr>
           <th class="sortable" onclick="sortTable('nom')">Nom</th>
-          <th>Téléphone</th><th>Email</th><th>CP</th>
+          <th>Téléphone</th><th>Email</th><th>CP</th><th>Poste</th><th>Établissement</th><th>Ville</th>
           <th class="sortable" onclick="sortTable('list')">Liste</th>
           <th class="sortable" onclick="sortTable('collab')">Collab</th>
           <th class="sortable" onclick="sortTable('status')">Statut</th>
@@ -749,7 +749,7 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
       <div class="table-wrap"><table>
         <thead><tr>
           <th style="width:34px"><input type="checkbox" id="check-all" onchange="toggleSelectAll()" style="cursor:pointer;accent-color:var(--accent)"></th>
-          <th>Nom</th><th>Téléphone</th><th>CP</th><th>Liste</th><th>Assigné à</th><th>Statut</th>
+          <th>Nom</th><th>Téléphone</th><th>CP</th><th>Poste</th><th>Établissement</th><th>Ville</th><th>Liste</th><th>Assigné à</th><th>Statut</th>
         </tr></thead>
         <tbody id="assign-tbody"></tbody>
       </table></div>
@@ -872,7 +872,7 @@ tr.row-selected td{background:rgba(249,115,22,.06) !important;}
         <button class="btn btn-ghost btn-sm" onclick="exportXLSX(true)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg> Excel</button>
       </div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Nom</th><th>Téléphone</th><th>Email</th><th>CP</th><th>Statut</th><th>RDV</th></tr></thead>
+        <thead><tr><th>Nom</th><th>Téléphone</th><th>Email</th><th>CP</th><th>Poste</th><th>Établissement</th><th>Ville</th><th>Statut</th><th>RDV</th></tr></thead>
         <tbody id="collab-tbody"></tbody>
       </table></div>
       <div class="pagination" id="collab-pagination"></div>
@@ -1488,7 +1488,7 @@ function renderAdminTable(){
   var weekEnd=fmtDate(new Date(Date.now()+7*86400000));
 
   var filtered=state.contacts.filter(function(c){
-    var txt=(c.nom+c.tel+c.email+c.cp).toLowerCase();
+    var txt=(c.nom+c.tel+c.email+c.cp+(c.poste||'')+(c.etablissement||'')+(c.ville||'')).toLowerCase();
     if(!(!q||txt.includes(q)))return false;
     if(!(!sf||c.status===sf))return false;
     if(!(!cf||c.collabId===cf))return false;
@@ -1540,7 +1540,7 @@ function renderAdminPage(filtered){
   var slice=filtered.slice((adminPage-1)*PAGE,adminPage*PAGE);
   var tbody=document.getElementById('admin-tbody');
   if(!slice.length){
-    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state">Aucun r\xE9sultat</div></td></tr>';
+    tbody.innerHTML='<tr><td colspan="11"><div class="empty-state">Aucun r\xE9sultat</div></td></tr>';
   } else {
     tbody.innerHTML='';
     for(var i=0;i<slice.length;i++){
@@ -1555,7 +1555,7 @@ function renderAdminPage(filtered){
       tr.setAttribute('data-idx', String(c.idx));
       tr.onclick=function(){openModal(this.getAttribute('data-idx'));};
       var telCell=c.tel?'<span class="td-tel-link" data-tel="'+esc(c.tel)+'" onclick="callNumber(this.getAttribute(\'data-tel\'),event)" style="color:var(--accent);cursor:pointer;font-weight:500">'+esc(c.tel)+'</span>':'—';
-      tr.innerHTML='<td class="td-nom">'+esc(c.nom)+'</td><td class="td-tel">'+telCell+'</td><td class="td-email">'+esc(c.email)+'</td><td>'+esc(c.cp)+'</td><td style="font-size:11px;color:var(--muted)">'+esc(lst?lst.name:'—')+'</td><td>'+esc(collab?collab.name:'—')+'</td><td><span class="badge '+s.cls+'">'+s.label+'</span></td><td style="font-size:11px">'+(nextRdv?'<span style="color:var(--purple)"> '+nextRdv.date+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>'
+      tr.innerHTML='<td class="td-nom">'+esc(c.nom)+'</td><td class="td-tel">'+telCell+'</td><td class="td-email">'+esc(c.email)+'</td><td>'+esc(c.cp)+'</td><td style="font-size:11px">'+esc(c.poste||'')+'</td><td style="font-size:11px">'+esc(c.etablissement||'')+'</td><td style="font-size:11px">'+esc(c.ville||'')+'</td><td style="font-size:11px;color:var(--muted)">'+esc(lst?lst.name:'—')+'</td><td>'+esc(collab?collab.name:'—')+'</td><td><span class="badge '+s.cls+'">'+s.label+'</span></td><td style="font-size:11px">'+(nextRdv?'<span style="color:var(--purple)"> '+nextRdv.date+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>'
         +'<td class="td-actions"><div class="quick-actions">'
         +'<div class="qa-btn qa-inprogress" onclick="event.stopPropagation();quickSetStatus(\''+c.idx+'\',\'inprogress\',\'En cours\')" title="En cours">↻</div>'
         +'<div class="qa-btn qa-done" onclick="event.stopPropagation();quickSetStatus(\''+c.idx+'\',\'done\',\'Trait\xE9\')" title="Trait\xE9">✓</div>'
@@ -1649,7 +1649,7 @@ function renderAssignTable(){
   lsel.value=lval;var lf=lsel.value;
   var sf=document.getElementById('assign-filter-status').value;
   var filtered=state.contacts.filter(function(c){
-    var txt=(c.nom+c.tel+c.email+c.cp).toLowerCase();
+    var txt=(c.nom+c.tel+c.email+c.cp+(c.poste||'')+(c.etablissement||'')+(c.ville||'')).toLowerCase();
     var matchSf=sf==='unassigned'?!c.collabId:true;
     return(!q||txt.includes(q))&&(!lf||c.listId===lf)&&matchSf;
   });
@@ -1662,7 +1662,7 @@ function renderAssignPage(filtered){
   var tbody=document.getElementById('assign-tbody');
   tbody.innerHTML='';
   if(!slice.length){
-    tbody.innerHTML='<tr><td colspan="7"><div class="empty-state">Aucun contact</div></td></tr>';
+    tbody.innerHTML='<tr><td colspan="10"><div class="empty-state">Aucun contact</div></td></tr>';
   } else {
     for(var i=0;i<slice.length;i++){
       var c=slice[i],lst=null,collab=null,s=STATUSES[c.status]||STATUSES.pending;
@@ -1680,6 +1680,9 @@ function renderAssignPage(filtered){
       var td1=document.createElement('td');td1.className='td-nom';td1.textContent=c.nom;tr.appendChild(td1);
       var td2=document.createElement('td');td2.textContent=c.tel;tr.appendChild(td2);
       var td3=document.createElement('td');td3.textContent=c.cp;tr.appendChild(td3);
+      var tdP=document.createElement('td');tdP.style.fontSize='11px';tdP.textContent=c.poste||'';tr.appendChild(tdP);
+      var tdE=document.createElement('td');tdE.style.fontSize='11px';tdE.textContent=c.etablissement||'';tr.appendChild(tdE);
+      var tdV=document.createElement('td');tdV.style.fontSize='11px';tdV.textContent=c.ville||'';tr.appendChild(tdV);
       var td4=document.createElement('td');td4.innerHTML='<span style="font-size:11px;color:var(--muted)">'+esc(lst?lst.name:'—')+'</span>';tr.appendChild(td4);
       var td5=document.createElement('td');td5.innerHTML=collabTxt;tr.appendChild(td5);
       var td6=document.createElement('td');td6.innerHTML='<span class="badge '+s.cls+'">'+s.label+'</span>';tr.appendChild(td6);
@@ -1704,7 +1707,7 @@ function toggleRow(idx){
 function toggleSelectAll(){
   var q=(document.getElementById('assign-search').value||'').toLowerCase();
   var lf=document.getElementById('assign-filter-list').value;
-  var unassigned=state.contacts.filter(function(c){var txt=(c.nom+c.tel+c.email+c.cp).toLowerCase();return(!q||txt.includes(q))&&(!lf||c.listId===lf)&&!c.collabId;});
+  var unassigned=state.contacts.filter(function(c){var txt=(c.nom+c.tel+c.email+c.cp+(c.poste||'')+(c.etablissement||'')+(c.ville||'')).toLowerCase();return(!q||txt.includes(q))&&(!lf||c.listId===lf)&&!c.collabId;});
   var allSel=unassigned.length&&unassigned.every(function(c){return selectedIds[c.idx];});
   if(allSel){selectedIds={};}else{for(var i=0;i<unassigned.length;i++)selectedIds[unassigned[i].idx]=true;}
   renderAssignTable();updateAssignActionBar();
@@ -2202,15 +2205,18 @@ function showImportPreview(filename){
   document.getElementById('import-preview').style.display='block';
   document.getElementById('import-summary').innerHTML='Fichier : <b>'+esc(filename)+'</b> — <b>'+importRawData.length+'</b> lignes';
   document.getElementById('import-list-name').value=filename.replace(/\.[^.]+$/,'');
-  var auto={nom:'',tel:'',email:'',cp:''};
+  var auto={nom:'',tel:'',email:'',cp:'',poste:'',etablissement:'',ville:''};
   for(var i=0;i<importHeaders.length;i++){
     var hl=importHeaders[i].toLowerCase();
     if(/nom|name|prenom|soci/.test(hl))auto.nom=importHeaders[i];
     else if(/tel|phone|mobile|portable/.test(hl))auto.tel=importHeaders[i];
     else if(/mail|email/.test(hl))auto.email=importHeaders[i];
     else if(/cp|postal|zip|code/.test(hl))auto.cp=importHeaders[i];
+    else if(/poste|fonction|role|titre/.test(hl))auto.poste=importHeaders[i];
+    else if(/etablissement|restaurant|entreprise|enseigne|societe|soci\xe9t\xe9/.test(hl))auto.etablissement=importHeaders[i];
+    else if(/ville|city|commune|localit/.test(hl))auto.ville=importHeaders[i];
   }
-  var fields=[{key:'nom',label:'Nom'},{key:'tel',label:'T\xE9l\xE9phone'},{key:'email',label:'Email'},{key:'cp',label:'CP'}];
+  var fields=[{key:'nom',label:'Nom'},{key:'tel',label:'T\xE9l\xE9phone'},{key:'email',label:'Email'},{key:'cp',label:'CP'},{key:'poste',label:'Poste'},{key:'etablissement',label:'\xC9tablissement'},{key:'ville',label:'Ville'}];
   var mapDiv=document.getElementById('import-col-map');mapDiv.innerHTML='';
   for(var i=0;i<fields.length;i++){
     var f=fields[i];
@@ -2231,12 +2237,12 @@ function showImportPreview(filename){
 
 function confirmImport(){
   var listName=document.getElementById('import-list-name').value.trim()||'Nouvelle liste';
-  var mapNom=document.getElementById('map_nom').value,mapTel=document.getElementById('map_tel').value,mapEmail=document.getElementById('map_email').value,mapCp=document.getElementById('map_cp').value;
+  var mapNom=document.getElementById('map_nom').value,mapTel=document.getElementById('map_tel').value,mapEmail=document.getElementById('map_email').value,mapCp=document.getElementById('map_cp').value,mapPoste=document.getElementById('map_poste').value,mapEtab=document.getElementById('map_etablissement').value,mapVille=document.getElementById('map_ville').value;
   var listId='list_'+Date.now();
   function getV(row,h){return h?String(row[importHeaders.indexOf(h)]||''):''; }
   for(var i=0;i<importRawData.length;i++){
     var row=importRawData[i];
-    state.contacts.push({idx:listId+'_'+i,nom:getV(row,mapNom),tel:getV(row,mapTel),email:getV(row,mapEmail),cp:getV(row,mapCp),status:'pending',note:'',collabId:null,listId:listId,comments:[]});
+    state.contacts.push({idx:listId+'_'+i,nom:getV(row,mapNom),tel:getV(row,mapTel),email:getV(row,mapEmail),cp:getV(row,mapCp),poste:getV(row,mapPoste),etablissement:getV(row,mapEtab),ville:getV(row,mapVille),status:'pending',note:'',collabId:null,listId:listId,comments:[]});
   }
   state.lists.push({id:listId,name:listName,count:importRawData.length,date:new Date().toLocaleDateString('fr-FR'),groupId:null});
   save();cancelImport();toast('\u2705 '+importRawData.length+' contacts import\xE9s');renderImportLists();renderAdminOverview();renderAdminTable();updateListFilterOptions();
@@ -2313,7 +2319,7 @@ function renderCollabTable(){
   var q=(document.getElementById('collab-search').value||'').toLowerCase();
   var sf=document.getElementById('cfs').value;
   var lf=document.getElementById('collab-list-filter').value;
-  var filtered=myContacts().filter(function(c){var txt=(c.nom+c.tel+c.email+c.cp).toLowerCase();return(!q||txt.includes(q))&&(!sf||c.status===sf)&&(!lf||c.listId===lf);});
+  var filtered=myContacts().filter(function(c){var txt=(c.nom+c.tel+c.email+c.cp+(c.poste||'')+(c.etablissement||'')+(c.ville||'')).toLowerCase();return(!q||txt.includes(q))&&(!sf||c.status===sf)&&(!lf||c.listId===lf);});
   renderCollabPage(filtered);
 }
 
@@ -2321,14 +2327,14 @@ function renderCollabPage(filtered){
   var tod=fmtDate(new Date()),pages=Math.ceil(filtered.length/PAGE)||1;
   var slice=filtered.slice((collabPage-1)*PAGE,collabPage*PAGE);
   var tbody=document.getElementById('collab-tbody');tbody.innerHTML='';
-  if(!slice.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state">Aucun r\xE9sultat</div></td></tr>';}
+  if(!slice.length){tbody.innerHTML='<tr><td colspan="9"><div class="empty-state">Aucun r\xE9sultat</div></td></tr>';}
   else{
     for(var i=0;i<slice.length;i++){
       var c=slice[i],s=STATUSES[c.status]||STATUSES.pending,nextRdv=null;
       for(var j=0;j<state.rdvs.length;j++){if(String(state.rdvs[j].contactIdx)===String(c.idx)&&state.rdvs[j].date>=tod){if(!nextRdv||state.rdvs[j].date<nextRdv.date)nextRdv=state.rdvs[j];}}
       var tr=document.createElement('tr');tr.setAttribute('data-idx',String(c.idx));tr.onclick=function(){openModal(this.getAttribute('data-idx'));};
       var telCell=c.tel?'<span class="td-tel-link" data-tel="'+esc(c.tel)+'" onclick="callNumber(this.getAttribute(\'data-tel\'),event)" style="color:var(--accent);cursor:pointer;font-weight:500">'+esc(c.tel)+'</span>':'—';
-      tr.innerHTML='<td class="td-nom">'+esc(c.nom)+'</td><td class="td-tel">'+telCell+'</td><td class="td-email">'+esc(c.email)+'</td><td>'+esc(c.cp)+'</td><td><span class="badge '+s.cls+'">'+s.label+'</span></td><td style="font-size:11px">'+(nextRdv?'<span style="color:var(--purple)"> '+nextRdv.date+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>';
+      tr.innerHTML='<td class="td-nom">'+esc(c.nom)+'</td><td class="td-tel">'+telCell+'</td><td class="td-email">'+esc(c.email)+'</td><td>'+esc(c.cp)+'</td><td style="font-size:11px">'+esc(c.poste||'')+'</td><td style="font-size:11px">'+esc(c.etablissement||'')+'</td><td style="font-size:11px">'+esc(c.ville||'')+'</td><td><span class="badge '+s.cls+'">'+s.label+'</span></td><td style="font-size:11px">'+(nextRdv?'<span style="color:var(--purple)"> '+nextRdv.date+'</span>':'<span style="color:var(--muted)">—</span>')+'</td>';
       tbody.appendChild(tr);
     }
   }
@@ -2368,6 +2374,9 @@ function openModal(idx){
   addRow('T\xE9l\xE9phone',c.tel?'<span class="td-tel-link" data-tel="'+esc(c.tel)+'" onclick="callNumber(this.getAttribute(\'data-tel\'),event)" style="color:var(--accent);cursor:pointer">'+esc(c.tel)+'</span>':'-');
   addRow('Email',esc(c.email));
   addRow('Code postal',esc(c.cp));
+  if(c.poste)addRow('Poste',esc(c.poste));
+  if(c.etablissement)addRow('\xC9tablissement',esc(c.etablissement));
+  if(c.ville)addRow('Ville',esc(c.ville));
   addRow('Assign\xE9 \xE0',collab?'<span style="color:var(--green)">'+esc(collab.name)+'</span>':'<span style="color:var(--muted)">Non assign\xE9</span>');
   for(var i=0;i<Math.min(rdvList.length,3);i++){
     var r=rdvList[i];
