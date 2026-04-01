@@ -2403,22 +2403,18 @@ function saveContact(){
   var c=null;for(var i=0;i<state.contacts.length;i++){if(String(state.contacts[i].idx)===String(state.currentContact)){c=state.contacts[i];break;}}if(!c)return;
   var newStatus=document.getElementById('modal-status-picker').dataset.status||c.status;
   var newNote=document.getElementById('modal-note').value;
-  if(newStatus!==c.status)addHistory('status',c.idx,c.nom,'Statut: '+STATUSES[c.status].label+' \u2192 '+STATUSES[newStatus].label);
+  if(newStatus!==c.status)addHistory('status',c.idx,c.nom,'Statut: '+STATUSES[c.status].label+' → '+STATUSES[newStatus].label);
   if(newNote!==c.note&&newNote.trim()){
-    addHistory('note',c.idx,c.nom,'Note modifi\xE9e');
+    addHistory('note',c.idx,c.nom,'Note modifiée');
     if(!c.noteHistory)c.noteHistory=[];
     c.noteHistory.push({text:newNote,who:state.currentUser.name,ts:Date.now()});
     if(c.noteHistory.length>50)c.noteHistory=c.noteHistory.slice(-50);
   }
   c.status=newStatus;c.note=newNote;
   save();
-  toast('\u2705 Enregistr\xE9');
-  // Refresh in background without closing modal
-  if(state.currentUser.type==='admin'){renderAdminOverview();renderAdminTable();}else renderCollabView();
-  // Update modal info without closing it
-  var vw=document.getElementById('validate-wrap');
-  if(vw)vw.style.display=(state.currentUser&&state.currentUser.type==='admin'&&c.status==='done')?'block':'none';
-  renderNoteHistory(c);
+  toast('✓ Enregistré');
+  closeModal('contact-modal');
+  if(state.currentUser.type==='admin'){renderAdminOverview();renderAdminTable();}else{renderCollabTable();}
 }
 
 function renderComments(c){
