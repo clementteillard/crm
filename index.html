@@ -2648,7 +2648,8 @@ async function fbPoll(){
   if(fbBusy)return;
   try{
     var main=await fbRead('main');
-    if(!main||!main.ts||main.ts<=(fbLastTs+1000)){sdot('ok','En ligne');return;}
+    if(!main||!main.ts){sdot('ok','En ligne');return;}
+    if(main.ts<=fbLastTs){sdot('ok','En ligne');return;}
     state.collabs=main.collabs||[];
     state.lists=main.lists||[];
     state.rdvs=main.rdvs||[];
@@ -2657,9 +2658,9 @@ async function fbPoll(){
     if(main.settings)state.settings=Object.assign({},state.settings,main.settings);
     var nc=main.nc||1,allC=[];
     for(var i=0;i<nc;i++){var cd=await fbRead('c'+i);if(cd&&Array.isArray(cd))allC=allC.concat(cd);}
-    if(allC.length)state.contacts=allC;
+    if(allC.length>100)state.contacts=allC;
     fbLastTs=main.ts;
-    toast('Mise a jour recue','info');
+    toast('Mise \xE0 jour re\xE7ue','info');
     refreshLoginDropdown();
     if(state.currentUser){
       if(state.currentUser.type==='admin'){renderAdminOverview();renderAdminTable();renderCollabManage();}
